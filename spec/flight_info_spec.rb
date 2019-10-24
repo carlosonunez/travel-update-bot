@@ -3,9 +3,6 @@ require 'spec_helper'
 describe "Flight info" do
   context "When given a flight number" do
     it "Retrieves flight info", :unit, :vcr do
-      stub_request(:get, "www.flightaware.com").to_return(
-                        body: File.read("spec/fixtures/test_flight_aa1.html")
-      )
       expected_flight_info_json = {
         flight_number: "AAL1",
         origin: "JFK",
