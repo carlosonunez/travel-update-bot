@@ -1,5 +1,0 @@
-(function(){var self=this;self.uriPattern=/^(http|https):\/\/(.*\.)?flightcdn.com/;self.history={};self.init=function(){if(typeof MutationObserver!=='function'){return;}
-self.observer=new MutationObserver(self.handleMutations);self.observer.observe(document,{attributeFilter:[self.attributeName],attributeOldValue:false,characterData:false,attributes:true,childList:true,subtree:true});};self.handleMutations=function(mutations){if(!mutations||!mutations.length){return;}
-for(var i=0;i<mutations.length;++i){for(var j=0;j<mutations[i].addedNodes.length;++j){var node=mutations[i].addedNodes[j],tagName=(node.tagName||'').toLowerCase();if(tagName==='script'&&node.src&&self.uriPattern.test(node.src)){if(self.history[node.src]){return;}
-self.attachReloadHandler(node);}}}};self.attachReloadHandler=function(node){node.onerror=function(e){if(self.history[node.src]){return;}
-var fallbackNode=document.createElement('script');fallbackNode.src='/'+node.src.replace(/^(?:\/\/|[^\/]+)*\//,'');fallbackNode.crossOrigin=node.crossOrigin;fallbackNode.integrity=node.integrity;document.head.appendChild(fallbackNode);self.history[node.src]=1;};};self.init();})();
