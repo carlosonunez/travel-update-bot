@@ -65,7 +65,6 @@ module FlightInfo
   end
 
   def self.get_destination(session:)
-    "LAX"
   end
 
 
