@@ -65,8 +65,14 @@ module FlightInfo
   end
 
   def self.get_destination(session:)
+    origin_element = session.find('.flightPageSummaryAirports').find('.flightPageSummaryDestination')
+    self.reload_element_if_obsolete! origin_element
+    begin
+      origin_element.text.split("\n").first
+    rescue Exception => e
+      raise "Could not get an origin: #{e}"
+    end
   end
-
 
   # TODO
   def self.get_departure_time(session:)
