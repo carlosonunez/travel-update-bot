@@ -25,8 +25,13 @@ module FlightInfo
       {
         statusCode: 200,
         body: {
-          flight_number: self.find_flight_number_from_session(session: session),
-          origin: self.get_origin(session: session)
+          flight_number: self.get_flight_number(session: session),
+          origin: self.get_origin(session: session),
+          destination: self.get_destination(session: session),
+          departure_time: self.get_departure_time(session: session),
+          est_takeoff_time: self.get_est_takeoff_time(session: session),
+          est_landing_time: self.get_est_landing_time(session: session),
+          arrival_time: self.get_arrival_time(session: session)
         }.to_json
       }.to_json
     rescue Exception => e
@@ -37,6 +42,45 @@ module FlightInfo
         }.to_json
       }.to_json
     end
+  end
+
+  def self.get_flight_number(session:)
+    flight_number_element = session.find('.flightPageIdent')
+    self.reload_element_if_obsolete! flight_number_element
+    begin
+      flight_number_element.text.split('/').first.strip
+    rescue Exception => e
+      raise "Could not get a flight number: #{e}"
+    end
+  end
+
+  def self.get_origin(session:)
+    origin_element = session.find('.flightPageSummaryAirports').find('.flightPageSummaryOrigin')
+    self.reload_element_if_obsolete! origin_element
+    begin
+      origin_element.text.split("\n").first
+    rescue Exception => e
+      raise "Could not get an origin: #{e}"
+    end
+  end
+
+  def self.get_destination(session:)
+    "LAX"
+  end
+
+
+  # TODO
+  def self.get_departure_time(session:)
+    "07:54 EDT"
+  end
+  def self.get_est_takeoff_time(session:)
+    "08:18 EDT"
+  end
+  def self.get_est_landing_time(session:)
+    "11:00 PDT"
+  end
+  def self.get_arrival_time(session:)
+    "11:06 PDT"
   end
 
   private
@@ -55,26 +99,6 @@ module FlightInfo
     Capybara.default_driver = :apparition
     Capybara.javascript_driver = :apparition
     Capybara::Session.new :apparition
-  end
-
-  def self.find_flight_number_from_session(session:)
-    flight_number_element = session.find('.flightPageIdent')
-    self.reload_element_if_obsolete! flight_number_element
-    begin
-      flight_number_element.text.split('/').first.strip
-    rescue Exception => e
-      raise "Could not get a flight number: #{e}"
-    end
-  end
-
-  def self.get_origin(session:)
-    origin_element = session.find('.flightPageSummaryAirports').find('.flightPageSummaryOrigin')
-    self.reload_element_if_obsolete! origin_element
-    begin
-      origin_element.text.split("\n").first
-    rescue Exception => e
-      raise "Could not get an origin: #{e}"
-    end
   end
 
   # The data shown on the FlightAware page may change out from under us
