@@ -10,10 +10,10 @@ describe "Flight info" do
           flight_number: "AAL1",
           origin: "JFK",
           destination: "LAX",
-          departure_time: 1572177180,
-          est_takeoff_time: 1572178620,
-          est_landing_time: 1572199860,
-          arrival_time: 1572200280
+          departure_time: "2019-10-27 07:53 EDT",
+          est_takeoff_time: "2019-10-27 08:17 EDT",
+          est_landing_time: "2019-10-27 11:11 PDT",
+          arrival_time: "2019-10-27 11:18 PDT"
         }.to_json
       }
       actual_json = JSON.parse(FlightInfo.get(flight_number: 'AA1'),
