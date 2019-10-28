@@ -107,7 +107,15 @@ module FlightInfo
   end
 
   private
+  def self.move_chrome_if_running_in_lambda!
+    if !ENV['AWS_LAMBDA_FUNCTION_NAME'].nil?
+      `cp vendor/chromium-browser /usr/bin`
+    end
+  end
+  
   def self.init_capybara
+    self.move_chrome_if_running_in_lambda!
+    raise "Chromium not installed" if !File.exist? '/usr/bin/chromium-browser'
     Capybara.register_driver :apparition do |app|
       opts = {
         headless: true,
