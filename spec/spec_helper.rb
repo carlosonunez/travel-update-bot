@@ -4,8 +4,6 @@ require 'httparty'
 require 'capybara'
 require 'capybara/dsl'
 require 'selenium-webdriver'
-require 'webmock'
-require 'webmock/rspec'
 Dir.glob('/app/spec/helpers/**/*.rb') do |file|
   require_relative file
 end
@@ -13,10 +11,6 @@ end
 
 RSpec.configure do |config|
   config.include Capybara::DSL, :integration => true
-  config.before(:all, :unit => true) do
-    include WebMock::API
-    WebMock.enable!
-  end
   config.before(:all, :integration => true) do
     ['SELENIUM_HOST', 'SELENIUM_PORT'].each do |required_selenium_env_var|
       raise "Please set #{required_selenium_env_var}" if ENV[required_selenium_env_var].nil?

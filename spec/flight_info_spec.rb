@@ -1,8 +1,17 @@
 require 'spec_helper'
 
 describe "Flight info" do
+  context "When I ping it" do
+    it 'Should ping back', :unit do
+      expected_response = {
+        body: { message: 'hello' }.to_json,
+        statusCode: 200
+      }
+      expect(FlightInfo.ping).to eq expected_response
+    end
+  end
   context "When given a flight number" do
-    it "Retrieves flight info", :unit, :vcr do
+    it "Retrieves flight info", :unit do
       ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa1.html"
       expected_flight_info_json = {
         statusCode: 200,

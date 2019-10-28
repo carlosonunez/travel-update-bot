@@ -7,6 +7,13 @@ require 'timeout'
 require 'time'
 
 module FlightInfo
+  def self.ping
+    {
+      statusCode: 200,
+      body: {message: 'hello'}.to_json
+    }
+  end
+
   def self.get(flight_number:)
     session = self.init_capybara
     url = ENV['FLIGHTAWARE_URL'] || "https://flightaware.com/live/flight/#{flight_number}"
