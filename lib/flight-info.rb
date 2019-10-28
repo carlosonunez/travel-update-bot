@@ -4,6 +4,7 @@ require 'capybara/dsl'
 require 'capybara/apparition'
 require 'json'
 require 'timeout'
+require 'time'
 
 module FlightInfo
   def self.get(flight_number:)
@@ -75,35 +76,27 @@ module FlightInfo
     end
   end
 
-  # TODO
   def self.get_departure_time(session:)
-    begin
-      # NOTE: This will add latency.
-      # Trying to find 'h3' matching 'Departure Times' didn't work.
-      departure_time_element = session.all('.flightPageDataActualTimeText').first
-      departure_date_element = session.find('.flightPageSummaryDepartureDay')
-      self.reload_element_if_obsolete! departure_time_element
-      self.reload_element_if_obsolete! departure_date_element
-      depart_date = departure_date_element.text.strip
-      depart_time = departure_time_element.text.split("\n").first.strip
-      depart_timestring = [
-        depart_date,
-        depart_time
-      ].join(' ')
-      Time.parse(depart_timestring).to_i
-    rescue Exception => e
-      raise "Could not get a flight number: #{e}"
-    end
+    self.get_flight_time(session: session,
+                         city_type: :origin,
+                         gate_or_takeoff_time: :gate)
   end
 
   def self.get_est_takeoff_time(session:)
-    "08:18 EDT"
+    self.get_flight_time(session: session,
+                         city_type: :origin,
+                         gate_or_takeoff_time: :takeoff)
   end
+
   def self.get_est_landing_time(session:)
-    "11:00 PDT"
+    self.get_flight_time(session: session,
+                         city_type: :destination,
+                         gate_or_takeoff_time: :gate)
   end
   def self.get_arrival_time(session:)
-    "11:06 PDT"
+    self.get_flight_time(session: session,
+                         city_type: :destination,
+                         gate_or_takeoff_time: :takeoff)
   end
 
   private
@@ -141,6 +134,46 @@ module FlightInfo
         break if !session.find_all('.flightPageHeading').empty?
         sleep 0.5
       end
+    end
+  end
+
+  # Fortunately, retrieving departure and arrival dates
+  # is this straighforward.
+  def self.get_flight_time(session:,
+                           city_type:,
+                           gate_or_takeoff_time:)
+    date_element_map = {
+      origin: {
+        date: '.flightPageSummaryDepartureDay',
+        gate: 0,
+        takeoff: 1
+      },
+      destination: {
+        date: '.flightPageSummaryArrivalDay',
+        gate: 2,
+        takeoff: 3
+      }
+    }
+    begin
+      # NOTE: This will add latency.
+      # Trying to find 'h3' matching 'Departure Times' didn't work.
+      time_element_pos = date_element_map[city_type][gate_or_takeoff_time]
+      time_element =
+        session.all('.flightPageDataActualTimeText')[time_element_pos]
+      date_element =
+        session.find(date_element_map[city_type][:date])
+      self.reload_element_if_obsolete! time_element
+      self.reload_element_if_obsolete! date_element
+      date = Time.parse(date_element.text.strip).strftime("%F")
+
+      # FlightAware uses non-standard timezones. Capture them directly from
+      # the page instead of trying to convert them.
+      time_full = time_element.text.split("\n").first.strip
+      time = Time.parse(time_full.split(' ').first).strftime("%R")
+      flightaware_timezone = time_full.split(' ').last
+      [date,time,flightaware_timezone].join(' ')
+    rescue Exception => e
+      raise "Could not get a flight number: #{e}"
     end
   end
 end
