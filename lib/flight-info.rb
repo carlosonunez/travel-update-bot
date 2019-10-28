@@ -8,8 +8,9 @@ require 'timeout'
 module FlightInfo
   def self.get(flight_number:)
     session = self.init_capybara
+    url = ENV['FLIGHTAWARE_URL'] || "https://flightaware.com/live/flight/#{flight_number}"
     begin
-      session.visit("https://flightaware.com/live/flight/#{flight_number}")
+      session.visit(url)
     rescue Exception => e
       return {
         statusCode: 400,
@@ -76,8 +77,25 @@ module FlightInfo
 
   # TODO
   def self.get_departure_time(session:)
-    "07:54 EDT"
+    begin
+      # NOTE: This will add latency.
+      # Trying to find 'h3' matching 'Departure Times' didn't work.
+      departure_time_element = session.all('.flightPageDataActualTimeText').first
+      departure_date_element = session.find('.flightPageSummaryDepartureDay')
+      self.reload_element_if_obsolete! departure_time_element
+      self.reload_element_if_obsolete! departure_date_element
+      depart_date = departure_date_element.text.strip
+      depart_time = departure_time_element.text.split("\n").first.strip
+      depart_timestring = [
+        depart_date,
+        depart_time
+      ].join(' ')
+      Time.parse(depart_timestring).to_i
+    rescue Exception => e
+      raise "Could not get a flight number: #{e}"
+    end
   end
+
   def self.get_est_takeoff_time(session:)
     "08:18 EDT"
   end
