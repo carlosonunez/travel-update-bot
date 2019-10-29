@@ -1,9 +1,10 @@
 require 'rspec'
-require 'flight-info'
 require 'httparty'
 require 'capybara'
 require 'capybara/dsl'
 require 'selenium-webdriver'
+require 'json'
+require_relative '../bin/flight-info.rb'
 Dir.glob('/app/spec/helpers/**/*.rb') do |file|
   require_relative file
 end

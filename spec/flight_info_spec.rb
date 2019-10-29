@@ -7,12 +7,18 @@ describe "Flight info" do
         body: { message: 'hello' }.to_json,
         statusCode: 200
       }
-      expect(FlightInfo.ping).to eq expected_response
+      expect(get_ping).to eq expected_response
     end
   end
+
   context "When given a flight number" do
     it "Retrieves flight info", :unit do
       ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa1.html"
+      fake_event = JSON.parse({
+        queryParameters: {
+          flightNumber: "AAL1"
+        }
+      }.to_json)
       expected_flight_info_json = {
         statusCode: 200,
         body: {
@@ -25,8 +31,7 @@ describe "Flight info" do
           arrival_time: "2019-10-27 11:18 PDT"
         }.to_json
       }
-      actual_json = JSON.parse(FlightInfo.get(flight_number: 'AA1'),
-                               {symbolize_names: true})
+      actual_json = get_flight_info(event: fake_event)
       expect(actual_json).to eq expected_flight_info_json
     end
   end

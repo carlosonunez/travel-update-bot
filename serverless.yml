@@ -40,24 +40,24 @@ package:
 
 functions:
   ping:
-    handler: lib/flight-info.ping
+    handler: bin/flight-info.get_ping
     description: Tests that flight info bot is up and running.
     timeout: 30
     environment:
-      GEM_PATH: vendor/bundle
+      GEM_PATH: vendor/bundle/ruby/2.5.0
     events:
       - http:
           path: ping
           method: get
   flight_info:
-    handler: lib/flight-info.get
+    handler: bin/flight-info.get_flight_info
     description: Gets flight information when given a flight number.
     timeout: 30
     environment:
-      GEM_PATH: vendor/bundle
+      GEM_PATH: vendor/bundle/ruby/2.5.0
     events:
       - http:
-          path: get_flight_info
+          path: flightInfo
           method: get
           private: true
 

@@ -42,7 +42,7 @@ module FlightInfo
           est_landing_time: self.get_est_landing_time(session: session),
           arrival_time: self.get_arrival_time(session: session)
         }.to_json
-      }.to_json
+      }
     rescue Exception => e
       return {
         statusCode: 400,
