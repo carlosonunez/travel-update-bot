@@ -11,6 +11,15 @@ describe "Flight info" do
     end
   end
 
+  context "When not given a flight number" do
+    it "Tells me that I need to provide a flight number", :unit do
+      expect(get_flight_info).to eq({
+        statusCode: 422,
+        body: { error: "Missing flight number" }.to_json
+      })
+    end
+  end
+
   context "When given a flight number" do
     it "Retrieves flight info", :unit do
       ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa1.html"

@@ -21,7 +21,7 @@ module FlightInfo
       session.visit(url)
     rescue Exception => e
       return {
-        statusCode: 400,
+        statusCode: 500,
         body: {
           error: "Unable to retrieve flight info for #{flight_number}: #{e}"
         }.to_json
@@ -45,7 +45,7 @@ module FlightInfo
       }
     rescue Exception => e
       return {
-        statusCode: 400,
+        statusCode: 500,
         body: {
           error: "Unable to find flight details for #{flight_number}: #{e}"
         }.to_json
