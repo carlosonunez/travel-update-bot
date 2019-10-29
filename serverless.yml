@@ -34,6 +34,16 @@ package:
     - .env*
 
 functions:
+  ping:
+    handler: lib/flight-info.ping
+    description: Tests that flight info bot is up and running.
+    timeout: 30
+    environment:
+      GEM_PATH: vendor/bundle
+    events:
+      - http:
+          path: ping
+          method: get
   flight_info:
     handler: lib/flight-info.get
     description: Gets flight information when given a flight number.
