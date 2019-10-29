@@ -55,6 +55,8 @@ functions:
     timeout: 30
     environment:
       GEM_PATH: vendor/bundle/ruby/2.5.0
+    layers:
+      - { Ref: ChromeLambdaLayer }
     events:
       - http:
           path: flightInfo
