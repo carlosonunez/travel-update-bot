@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-docker-compose run --rm unit
+docker-compose -f docker-compose.deploy.yml run --rm vendor-dependencies && \
+  docker-compose run --rm unit

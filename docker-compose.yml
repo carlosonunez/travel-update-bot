@@ -20,17 +20,21 @@ services:
         ENVIRONMENT: test
     env_file: .env
     volumes:
-      - $PWD:/app
-    working_dir: /app
+      - $PWD:/var/task
+    working_dir: /var/task
     entrypoint: sh
     command:
       - "-c"
       - "not meant to be run with the stack"
+
+  # You will need to vendor your dependencies first before running unit tests.
+  # scripts/unit does this for you automatically.
   unit:
     extends: ruby
-    entrypoint: rspec
+    entrypoint: vendor/bundle/ruby/2.5.0/bin/rspec
     environment:
-      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
+      LOAD_PATH: "spec/unit;spec;lib"
+      GEM_PATH: "vendor/bundle/ruby/2.5.0"
     command:
       - --tag
       - unit

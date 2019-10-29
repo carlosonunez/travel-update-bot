@@ -115,14 +115,15 @@ module FlightInfo
   
   def self.init_capybara
     self.move_chrome_if_running_in_lambda!
-    raise "Chromium not installed" if !File.exist? '/usr/bin/chromium-browser'
+    raise "Chromium not installed" if !File.exist? '/opt/google/chrome/google-chrome'
     Capybara.register_driver :apparition do |app|
       opts = {
         headless: true,
         browser_options: [
           :no_sandbox,
           { disable_features: 'VizDisplayCompositor' },
-          :disable_gpu
+          :disable_gpu,
+          :disable_dev_shm_usage
         ]
       }
       Capybara::Apparition::Driver.new(app, opts)
