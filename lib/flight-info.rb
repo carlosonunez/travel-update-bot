@@ -18,6 +18,7 @@ module FlightInfo
     session = self.init_capybara
     url = ENV['FLIGHTAWARE_URL'] || "https://flightaware.com/live/flight/#{flight_number}"
     begin
+      puts "Visiting: #{url}"
       session.visit(url)
     rescue Exception => e
       return {
@@ -28,8 +29,10 @@ module FlightInfo
       }.to_json
     end
 
+    puts "Waiting for page to load."
     self.wait_for_page_to_finish_loading!(session: session,
                                           timeout: 60)
+    puts "Page hath loaded"
     begin
       {
         statusCode: 200,
@@ -107,14 +110,7 @@ module FlightInfo
   end
 
   private
-  def self.move_chrome_if_running_in_lambda!
-    if !ENV['AWS_LAMBDA_FUNCTION_NAME'].nil?
-      `cp vendor/chromium-browser /usr/bin`
-    end
-  end
-  
   def self.init_capybara
-    self.move_chrome_if_running_in_lambda!
     raise "Chromium not installed" if !File.exist? '/opt/google/chrome/google-chrome'
     Capybara.register_driver :apparition do |app|
       opts = {
