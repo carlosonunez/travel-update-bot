@@ -24,7 +24,7 @@ describe "Flight info" do
     it "Retrieves flight info", :unit do
       ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa1.html"
       fake_event = JSON.parse({
-        queryParameters: {
+        queryStringParameters: {
           flightNumber: "AAL1"
         }
       }.to_json)

@@ -11,12 +11,12 @@ end
 
 def get_flight_info(event: {}, context: {})
   if (event.empty? or
-      event['queryParameters'].nil? or
-      event['queryParameters']['flightNumber'].nil?)
+      event['queryStringParameters'].nil? or
+      event['queryStringParameters']['flightNumber'].nil?)
     return {
       statusCode: 422,
       body: { error: "Missing flight number" }.to_json
     }
   end
-  FlightInfo::get(flight_number: event['queryParameters']['flightNumber'])
+  FlightInfo::get(flight_number: event['queryStringParameters']['flightNumber'])
 end
