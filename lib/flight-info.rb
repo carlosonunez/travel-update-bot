@@ -14,28 +14,26 @@ module FlightInfo
   end
 
   def self.test_internet_access
-    puts "Visiting the page"
     session = self.init_capybara
     session.visit('http://nil.carlosnunez.me')
-    puts "Page visited."
     {
       statusCode: 200,
       body: { message: session.body }.to_json
     }
   end
 
-  def self.get(flight_number:)
+  def self.get_flight_details(flight_number:)
     session = self.init_capybara
     url = ENV['FLIGHTAWARE_URL'] || "https://flightaware.com/live/flight/#{flight_number}"
     begin
       session.visit(url)
     rescue Exception => e
       return {
-        statusCode: 500,
+        statusCode: 422,
         body: {
           error: "Unable to retrieve flight info for #{flight_number}: #{e}"
         }.to_json
-      }.to_json
+      }
     end
 
     self.wait_for_page_to_finish_loading!(session: session,
@@ -55,11 +53,11 @@ module FlightInfo
       }
     rescue Exception => e
       return {
-        statusCode: 500,
+        statusCode: 422,
         body: {
           error: "Unable to find flight details for #{flight_number}: #{e}"
         }.to_json
-      }.to_json
+      }
     end
   end
 
@@ -121,7 +119,12 @@ module FlightInfo
     Capybara.register_driver :poltergeist do |app|
       Capybara::Poltergeist::Driver.new(app, {
         phantomjs: '/opt/phantomjs/phantomjs',
-        js_errors: false
+        js_errors: false,
+        phantomjs_options: [
+          '--ssl-protocol=any',
+          '--load-images=no',
+          '--ignore-ssl-errors=yes'
+        ]
       })
     end
     Capybara.default_driver = :poltergeist

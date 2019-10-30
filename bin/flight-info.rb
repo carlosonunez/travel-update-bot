@@ -22,5 +22,5 @@ def get_flight_info(event: {}, context: {})
       body: { error: "Missing flight number" }.to_json
     }
   end
-  FlightInfo::get(flight_number: event['queryStringParameters']['flightNumber'])
+  FlightInfo::get_flight_details(flight_number: event['queryStringParameters']['flightNumber'])
 end

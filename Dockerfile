@@ -5,7 +5,7 @@ ARG ENVIRONMENT
 RUN yum install -y ruby25-devel gcc libxml2 libxml2-devel libxslt libxslt-devel patch
 
 COPY include/phantomjs_lambda.zip /
-WORKDIR /
+WORKDIR /opt
 RUN unzip /phantomjs_lambda.zip && rm /phantomjs_lambda.zip
 WORKDIR /var/task
 ENTRYPOINT ["ruby", "-e", "puts 'Welcome to flight-info'"]
