@@ -33,6 +33,8 @@ data "aws_route53_zone" "app_dns_zone" {
   name = "${var.domain_tld}."
 }
 
+data "aws_region" "current" {}
+
 resource "aws_s3_bucket" "serverless_bucket" {
   bucket = "${var.serverless_bucket_name}"
 }
@@ -89,6 +91,75 @@ resource "aws_acm_certificate_validation" "app_cert" {
   validation_record_fqdns = ["${aws_route53_record.app_cert_validation_cname.0.fqdn}"]
 }
 
+resource "aws_vpc" "lambda_vpc" {
+  cidr_block = "192.168.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+}
+
+resource "aws_eip" "lambda_inet_outbound" {
+  vpc = true
+}
+
+resource "aws_internet_gateway" "public_to_inet" {
+  vpc_id = "${aws_vpc.lambda_vpc.id}"
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = "${aws_vpc.lambda_vpc.id}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.public_to_inet.id}"
+  }
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = "${aws_vpc.lambda_vpc.id}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = "${aws_nat_gateway.private_to_public.id}"
+  }
+}
+
+resource "aws_subnet" "public" {
+  vpc_id = "${aws_vpc.lambda_vpc.id}"
+  availability_zone = "${data.aws_region.current.name}a"
+  cidr_block = "192.168.1.0/24"
+}
+
+resource "aws_subnet" "private" {
+  vpc_id = "${aws_vpc.lambda_vpc.id}"
+  availability_zone = "${data.aws_region.current.name}a"
+  cidr_block = "192.168.2.0/24"
+}
+
+resource "aws_nat_gateway" "private_to_public" {
+  allocation_id = "${aws_eip.lambda_inet_outbound.id}"
+  subnet_id = "${aws_subnet.private.id}"
+}
+
+resource "aws_route_table_association" "private" {
+  subnet_id = "${aws_subnet.private.id}"
+  route_table_id = "${aws_route_table.private.id}"
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id = "${aws_subnet.public.id}"
+  route_table_id = "${aws_route_table.public.id}"
+}
+
+resource "aws_security_group" "lambda_inet_outbound" {
+  name = "lambda_functions"
+  description = "Allow outbound Internet access to Lambda functions"
+  vpc_id = "${aws_vpc.lambda_vpc.id}"
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 
 output "app_account_ak" {
   value = "${aws_iam_access_key.app.id}"
@@ -100,4 +171,12 @@ output "app_account_sk" {
 
 output "certificate_arn" {
   value = "${var.no_certs == "true" ? "none" : aws_acm_certificate.app_cert.0.arn}"
+}
+
+output "lambda_subnet_id" {
+  value = "${aws_subnet.private.id}"
+}
+
+output "lambda_security_group" {
+  value = "${aws_security_group.lambda_inet_outbound.id}"
 }

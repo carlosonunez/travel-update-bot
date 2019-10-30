@@ -15,7 +15,7 @@ provider:
   name: aws
   runtime: ruby2.5
   region: ${env:AWS_REGION, 'us-east-2'}
-  memorySize: 256
+  memorySize: 1024
   deploymentBucket:
     name: ${env:SERVERLESS_BUCKET_NAME}
   deploymentPrefix: serverless
@@ -49,6 +49,24 @@ functions:
       - http:
           path: ping
           method: get
+  test_internet_access:
+    handler: bin/flight-info.test_internet_access
+    description: Test whether our app can access the Internet.
+    timeout: 30
+    environment:
+      GEM_PATH: vendor/bundle/ruby/2.5.0
+    layers:
+      - { Ref: ChromeLambdaLayer }
+    vpc:
+      securityGroupIds:
+        - ${file(./secrets/lambda_security_group)}
+      subnetIds:
+        - ${file(./secrets/lambda_subnet_id)}
+    events:
+      - http:
+          path: testInternetAccess
+          method: get
+          private: true
   flight_info:
     handler: bin/flight-info.get_flight_info
     description: Gets flight information when given a flight number.
@@ -57,6 +75,11 @@ functions:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
       - { Ref: ChromeLambdaLayer }
+    vpc:
+      securityGroupIds:
+        - ${file(./secrets/lambda_security_group)}
+      subnetIds:
+        - ${file(./secrets/lambda_subnet_id)}
     events:
       - http:
           path: flightInfo

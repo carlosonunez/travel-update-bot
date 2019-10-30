@@ -14,6 +14,15 @@ module FlightInfo
     }
   end
 
+  def self.test_internet_access
+    session = self.init_capybara
+    session.visit('http://nil.carlosnunez.me')
+    {
+      statusCode: 200,
+      body: { message: session.body }.to_json
+    }
+  end
+
   def self.get(flight_number:)
     session = self.init_capybara
     url = ENV['FLIGHTAWARE_URL'] || "https://flightaware.com/live/flight/#{flight_number}"

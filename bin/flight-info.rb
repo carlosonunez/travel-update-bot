@@ -5,6 +5,10 @@ if Dir.exist? './vendor'
 end
 require 'flight-info'
 
+def test_internet_access(event: {}, context: {})
+  FlightInfo::test_internet_access
+end
+
 def get_ping(event: {}, context: {})
   FlightInfo::ping
 end

@@ -1,5 +1,16 @@
 require 'spec_helper'
 
+describe "Test load" do
+  it 'Should give me my nil page', :unit do
+    expect(test_internet_access).to eq({
+      body: {
+        message: '<html><head></head><body><pre style=\"word-wrap: break-word; white-space: pre-wrap;\">i love socks.</pre></body></html>"'
+      }.to_json,
+      statusCode: 200
+    })
+  end
+end
+
 describe "Flight info" do
   context "When I ping it" do
     it 'Should ping back', :unit do
