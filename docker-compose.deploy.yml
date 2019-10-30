@@ -5,6 +5,7 @@ services:
       context: .
     entrypoint: sh
     volumes:
+      - "$PWD/Gemfile:/Gemfile"
       - "$PWD/vendor:/vendor"
     command:
       - -c

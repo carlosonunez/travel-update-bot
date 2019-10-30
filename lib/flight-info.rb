@@ -1,7 +1,7 @@
-require 'httparty'
 require 'capybara'
 require 'capybara/dsl'
-require 'capybara/apparition'
+require 'selenium-webdriver'
+require 'webdrivers/chromedriver'
 require 'json'
 require 'timeout'
 require 'time'
@@ -16,7 +16,7 @@ module FlightInfo
 
   def self.test_internet_access
     session = self.init_capybara
-    session.visit('http://nil.carlosnunez.me')
+    session.visit('file:///opt/google/chrome/page_test.html')
     {
       statusCode: 200,
       body: { message: session.body }.to_json
@@ -120,22 +120,30 @@ module FlightInfo
 
   private
   def self.init_capybara
-    raise "Chromium not installed" if !File.exist? '/opt/google/chrome/google-chrome'
-    Capybara.register_driver :apparition do |app|
-      opts = {
-        headless: true,
-        browser_options: [
-          :no_sandbox,
-          { disable_features: 'VizDisplayCompositor' },
-          :disable_gpu,
-          :disable_dev_shm_usage
-        ]
-      }
-      Capybara::Apparition::Driver.new(app, opts)
+    raise "Chromium not installed" if !File.exist? '/opt/google/chrome/chromium-browser'
+    if ENV["CI"]
+      Webdrivers::Chromedriver.required_version = "74.0.3729.6"
+    else
+      Webdrivers::Chromedriver.update
     end
-    Capybara.default_driver = :apparition
-    Capybara.javascript_driver = :apparition
-    Capybara::Session.new :apparition
+
+    Capybara.register_driver :headless_chrome do |app|
+      options = ::Selenium::WebDriver::Chrome::Options.new
+
+      options.add_argument("--headless")
+      options.add_argument("--no-sandbox")
+      options.add_argument("--disable-gpu")
+      options.add_argument("window-size=2560x2560")
+      options.add_argument("disable-dev-shm-usage") if ENV['CI']
+
+      Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+    end
+
+    Capybara.javascript_driver = :headless_chrome
+
+    Capybara.default_driver = :selenium_chrome_headless
+    Capybara.javascript_driver = :selenium_chrome_headless
+    Capybara::Session.new :selenium_chrome_headless
   end
 
   # The data shown on the FlightAware page may change out from under us

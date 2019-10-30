@@ -1,2 +1,4 @@
 production:
   - serverless-domain-manager
+develop:
+  - serverless-offline

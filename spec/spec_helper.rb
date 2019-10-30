@@ -1,7 +1,7 @@
 require 'rspec'
-require 'httparty'
 require 'capybara'
 require 'capybara/dsl'
+require 'chromedriver-helper'
 require 'selenium-webdriver'
 require 'json'
 require_relative '../bin/flight-info.rb'

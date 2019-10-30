@@ -16,8 +16,7 @@ terraform $action $* && \
   if [ "$action" == "apply" ]
   then
     mkdir -p ./secrets
-    for output_var in app_account_ak app_account_sk certificate_arn \
-      lambda_security_group lambda_subnet_id
+    for output_var in app_account_ak app_account_sk certificate_arn
     do
       write_secret "$(terraform output "$output_var")" "$output_var"
     done

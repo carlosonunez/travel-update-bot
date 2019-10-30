@@ -35,6 +35,8 @@ services:
     environment:
       LOAD_PATH: "spec/unit;spec;lib"
       GEM_PATH: "vendor/bundle/ruby/2.5.0"
+    volumes:
+      - /dev/null:/dev/shm
     command:
       - --tag
       - unit

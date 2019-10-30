@@ -30,6 +30,7 @@ package:
     - bin/**
     - vendor/**
   exclude:
+    - include/**
     - scripts/**
     - secrets/**
     - infra/**
@@ -57,11 +58,6 @@ functions:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
       - { Ref: ChromeLambdaLayer }
-    vpc:
-      securityGroupIds:
-        - ${file(./secrets/lambda_security_group)}
-      subnetIds:
-        - ${file(./secrets/lambda_subnet_id)}
     events:
       - http:
           path: testInternetAccess
@@ -75,11 +71,6 @@ functions:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
       - { Ref: ChromeLambdaLayer }
-    vpc:
-      securityGroupIds:
-        - ${file(./secrets/lambda_security_group)}
-      subnetIds:
-        - ${file(./secrets/lambda_subnet_id)}
     events:
       - http:
           path: flightInfo

@@ -1,6 +1,3 @@
 #!/usr/bin/env bash
-if ! test -d vendor/bundle
-then
-  docker-compose -f docker-compose.deploy.yml run --rm vendor-dependencies
-fi
+#docker-compose -f docker-compose.deploy.yml run --rm vendor-dependencies
 docker-compose run --rm unit

@@ -10,7 +10,8 @@ docker-compose up -d selenium && \
 docker-compose run --rm integration && \
 docker-compose down"
 alias remove_functions="docker-compose run --rm serverless remove --stage develop"
-alias remove_infra="docker-compose -f docker-compose.deploy.yml run --rm terraform destroy"
+alias remove_infra="docker-compose -f docker-compose.deploy.yml run --rm terraform destroy -input=false"
 alias deploy="scripts/deploy"
 alias destroy="remove_functions && remove_infra"
 alias logs="docker-compose run --rm serverless logs --stage develop"
+alias serverless="docker-compose run --rm serverless"
