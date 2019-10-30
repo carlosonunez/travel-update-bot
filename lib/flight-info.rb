@@ -44,7 +44,9 @@ module FlightInfo
         body: {
           flight_number: self.get_flight_number(session: session),
           origin: self.get_origin(session: session),
+          origin_city: self.get_origin_city(session: session),
           destination: self.get_destination(session: session),
+          destination_city: self.get_destination_city(session: session),
           departure_time: self.get_departure_time(session: session),
           est_takeoff_time: self.get_est_takeoff_time(session: session),
           est_landing_time: self.get_est_landing_time(session: session),
@@ -86,6 +88,26 @@ module FlightInfo
     self.reload_element_if_obsolete! origin_element
     begin
       origin_element.text.split("\n").first
+    rescue Exception => e
+      raise "Could not get an origin: #{e}"
+    end
+  end
+
+  def self.get_origin_city(session:)
+    origin_element = session.all('.flightPageSummaryCity').first
+    self.reload_element_if_obsolete! origin_element
+    begin
+      origin_element['innerHTML'].strip
+    rescue Exception => e
+      raise "Could not get an origin: #{e}"
+    end
+  end
+
+  def self.get_destination_city(session:)
+    origin_element = session.find('.destinationCity')
+    self.reload_element_if_obsolete! origin_element
+    begin
+      origin_element['innerHTML'].strip
     rescue Exception => e
       raise "Could not get an origin: #{e}"
     end

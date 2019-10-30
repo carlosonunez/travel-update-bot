@@ -44,7 +44,9 @@ describe "Flight info" do
         body: {
           flight_number: "AAL1",
           origin: "JFK",
+          origin_city: "New York, NY",
           destination: "LAX",
+          destination_city: "Los Angeles, CA",
           departure_time: "2019-10-27 07:53 EDT",
           est_takeoff_time: "2019-10-27 08:17 EDT",
           est_landing_time: "2019-10-27 11:11 PDT",
