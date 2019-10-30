@@ -15,7 +15,7 @@ provider:
   name: aws
   runtime: ruby2.5
   region: ${env:AWS_REGION, 'us-east-2'}
-  memorySize: 1024
+  memorySize: 128
   deploymentBucket:
     name: ${env:SERVERLESS_BUCKET_NAME}
   deploymentPrefix: serverless
@@ -57,7 +57,7 @@ functions:
     environment:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
-      - { Ref: PhantomJSLambdaLayer }
+      - { Ref: PhantomjsLambdaLayer }
     events:
       - http:
           path: testInternetAccess
@@ -70,7 +70,7 @@ functions:
     environment:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
-      - { Ref: PhantomJSLambdaLayer }
+      - { Ref: PhantomjsLambdaLayer }
     events:
       - http:
           path: flightInfo
