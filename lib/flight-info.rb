@@ -14,8 +14,10 @@ module FlightInfo
   end
 
   def self.test_internet_access
+    puts "Visiting the page"
     session = self.init_capybara
     session.visit('http://nil.carlosnunez.me')
+    puts "Page visited."
     {
       statusCode: 200,
       body: { message: session.body }.to_json
