@@ -52,13 +52,13 @@ services:
     environment:
       SLS_DEBUG: "true" # this command is janky af
     command:
+      - --stage=v1
       - create_domain
   deploy-serverless-functions:
     extends: serverless
     command:
+      - --stage=v1
       - deploy
-      - --stage
-      - production
   deploy-serverless-infra-test:
     extends: terraform
     environment:
