@@ -7,9 +7,9 @@ service:
 frameworkVersion: '>=1.0.0'
 
 layers:
-  chrome:
+  phantomjs:
     package:
-      artifact: include/chrome_lambda.zip
+      artifact: include/phantomjs_lambda.zip
 
 provider:
   name: aws
@@ -57,7 +57,7 @@ functions:
     environment:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
-      - { Ref: ChromeLambdaLayer }
+      - { Ref: PhantomJSLambdaLayer }
     events:
       - http:
           path: testInternetAccess
@@ -70,7 +70,7 @@ functions:
     environment:
       GEM_PATH: vendor/bundle/ruby/2.5.0
     layers:
-      - { Ref: ChromeLambdaLayer }
+      - { Ref: PhantomJSLambdaLayer }
     events:
       - http:
           path: flightInfo
