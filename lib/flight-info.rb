@@ -210,7 +210,8 @@ module FlightInfo
       flightaware_timezone = time_full.split(' ').last
       [date,time,flightaware_timezone].join(' ')
     rescue Exception => e
-      raise "Could not get a flight number: #{e}"
+      raise "Failed to retrieve travel time: #{e}. Here is the date that we saw; \
+this might help for debugging purposes: #{date_element}, #{time_element}"
     end
   end
 end
