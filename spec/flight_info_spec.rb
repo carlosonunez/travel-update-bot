@@ -40,7 +40,7 @@ describe "Flight info" do
   end
 
   context "When given a flight number" do
-    it "Retrieves flight info", :unit do
+    it "Retrieves flight info when all times are on the page", :unit do
       ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa1.html"
       fake_event = JSON.parse({
         queryStringParameters: {
@@ -59,6 +59,31 @@ describe "Flight info" do
           est_takeoff_time: "2019-10-27 08:17 EDT",
           est_landing_time: "2019-10-27 11:11 PDT",
           arrival_time: "2019-10-27 11:18 PDT"
+        }.to_json
+      }
+      actual_json = get_flight_info(event: fake_event)
+      expect(actual_json).to eq expected_flight_info_json
+    end
+
+    it "Approximates takeoff/landing times when they aren't known yet", :unit do
+      ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa356.html"
+      fake_event = JSON.parse({
+        queryStringParameters: {
+          flightNumber: "AAL356"
+        }
+      }.to_json)
+      expected_flight_info_json = {
+        statusCode: 200,
+        body: {
+          flight_number: "AAL356",
+          origin: "OMA",
+          origin_city: "Omaha, NE",
+          destination: "DFW",
+          destination_city: "Dallas-Fort Worth, TX",
+          departure_time: "2019-11-07 20:23 CST",
+          est_takeoff_time: "2019-11-07 20:23 CST",
+          est_landing_time: "2019-11-07 22:20 CST",
+          arrival_time: "2019-11-07 22:20 CST"
         }.to_json
       }
       actual_json = get_flight_info(event: fake_event)

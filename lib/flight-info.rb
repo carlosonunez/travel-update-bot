@@ -120,16 +120,25 @@ module FlightInfo
   end
 
   def self.get_est_takeoff_time(session:)
-    self.get_flight_time(session: session,
-                         city_type: :origin,
-                         gate_or_takeoff_time: :takeoff)
+    takeoff_time = self.get_flight_time(session: session,
+                                        city_type: :origin,
+                                        gate_or_takeoff_time: :takeoff)
+    return takeoff_time if !takeoff_time.nil?
+    puts "WARN: Takeoff time not found. This can happen during delays. Defaulting to \
+departure time."
+    return self.get_departure_time(session: session)
   end
 
   def self.get_est_landing_time(session:)
-    self.get_flight_time(session: session,
-                         city_type: :destination,
-                         gate_or_takeoff_time: :gate)
+    landing_time = self.get_flight_time(session: session,
+                                              city_type: :destination,
+                                              gate_or_takeoff_time: :gate)
+    return landing_time if !landing_time.nil?
+    puts "WARN: Landing time not found. This can happen during delays. Defaulting to \
+arrival time."
+    return self.get_arrival_time(session: session)
   end
+  
   def self.get_arrival_time(session:)
     self.get_flight_time(session: session,
                          city_type: :destination,
@@ -201,17 +210,22 @@ module FlightInfo
         session.find(date_element_map[city_type][:date])
       self.reload_element_if_obsolete! time_element
       self.reload_element_if_obsolete! date_element
-      date = Time.parse(date_element.text.strip).strftime("%F")
+      serialized_date = date_element.text.strip
+      serialized_time = time_element.text.split("\n").first.strip
+      if serialized_time == "--" or serialized_date == "--"
+        puts "WARN: Invalid date/time combo detected"
+        return nil
+      end
+      date = Time.parse(serialized_date).strftime("%F")
 
       # FlightAware uses non-standard timezones. Capture them directly from
       # the page instead of trying to convert them.
-      time_full = time_element.text.split("\n").first.strip
-      time = Time.parse(time_full.split(' ').first).strftime("%R")
-      flightaware_timezone = time_full.split(' ').last
+      time = Time.parse(serialized_time.split(' ').first).strftime("%R")
+      flightaware_timezone = serialized_time.split(' ').last
       [date,time,flightaware_timezone].join(' ')
     rescue Exception => e
       raise "Failed to retrieve travel time: #{e}. Here is the date that we saw; \
-this might help for debugging purposes: #{date_element}, #{time_element}"
+this might help for debugging purposes: #{serialized_date}, #{serialized_time}"
     end
   end
 end
