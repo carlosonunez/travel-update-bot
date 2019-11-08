@@ -1,10 +1,18 @@
 require 'spec_helper'
+require 'ostruct'
 
 describe "Test load" do
   it 'Should give me my nil page', :unit do
+    # This is easier than trying to test double Capybara since there's so
+    # much monkey patching going on in there.
+    fake_reply = 'bloop'
+    fake_session = double("Fake session",
+                          visit: true,
+                          body: fake_reply)
+    allow(FlightInfo).to receive(:init_capybara).and_return(fake_session)
     expect(test_internet_access).to eq({
       body: {
-        message: '<html><head></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">i love socks.</pre></body></html>'
+        message: fake_reply
       }.to_json,
       statusCode: 200
     })
