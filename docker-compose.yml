@@ -1,0 +1,43 @@
+version: '2.2'
+services:
+  selenium:
+    image: selenium/standalone-chrome-debug
+    ports:
+      - 4444:4444
+      - 5900:5900
+  serverless:
+    env_file: .env
+    working_dir: /app
+    build:
+      dockerfile: serverless.Dockerfile
+      context: .
+  unit:
+    env_file: .env
+    build:
+      dockerfile: app.Dockerfile
+      context: .
+    command:
+      - go
+      - test
+      - -tags=unit
+  integration-setup:
+    extends: serverless
+    entrypoint: bash
+    command:
+      - -c
+      - ./scripts/integration_setup.sh
+  integration-teardown:
+    extends: serverless
+    command:
+      - remove
+      - --stage
+      - develop
+  integration:
+    env_file: .env
+    build:
+      dockerfile: app.Dockerfile
+      context: .
+    command:
+      - go
+      - test
+      - -tags=integration
