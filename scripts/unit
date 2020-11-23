@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker-compose build unit && docker-compose run --rm unit
