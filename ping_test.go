@@ -4,11 +4,11 @@ import "testing"
 
 func TestPingSuccessful(t *testing.T) {
 	expected := "hello"
-	got, err := flightaware_bot.ping()
+	got, err := Ping()
 	if err != nil {
 		t.Error(err)
 	}
 	if got != expected {
-		t.Error("Expected %s, but got %s", expected, hello)
+		t.Errorf("Expected %s, but got %s", expected, got)
 	}
 }
