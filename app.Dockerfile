@@ -6,4 +6,8 @@ ENV PROJECT_DIR=$GOPATH/github.com/$GITHUB_REPO
 RUN apk add git gcc musl-dev
 COPY . $PROJECT_DIR/src
 WORKDIR $PROJECT_DIR/src
+
+# NOTE: Ensure that /data exists in the image used to run Selenium Hub and that
+# it contains the mocked websites under test.
+ENV FIXTURES_PATH=/data
 RUN [ "sh", "-c", "echo 'Working on it!'" ]
