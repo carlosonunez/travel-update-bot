@@ -11,6 +11,17 @@ services:
     build:
       dockerfile: serverless.Dockerfile
       context: .
+  vendor:
+    env_file: .env
+    volumes:
+      - $PWD/vendor:/vendor
+    build:
+      dockerfile: app.Dockerfile
+      context: .
+    command:
+      - sh
+      - -c
+      - "go mod vendor && go install && cp -R ./vendor/* /vendor"
   unit:
     env_file: .env
     build:
