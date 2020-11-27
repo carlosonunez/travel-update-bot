@@ -1,9 +1,9 @@
 FROM golang:alpine
 MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 ENV GITHUB_REPO=carlosonunez/flightaware-bot
+ENV PROJECT_DIR=$GOPATH/github.com/$GITHUB_REPO
 
 RUN apk add git gcc musl-dev
-RUN mkdir -p /go/github.com/$GITHUB_REPO/{bin,src}
-WORKDIR /go/github.com/$GITHUB_REPO/src
-COPY . /go/github.com/$GITHUB_REPO/src
+COPY . $PROJECT_DIR/src
+WORKDIR $PROJECT_DIR/src
 RUN [ "sh", "-c", "echo 'Working on it!'" ]
