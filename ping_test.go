@@ -1,4 +1,4 @@
-package flightaware_bot
+package flightawarebot
 
 import "testing"
 
