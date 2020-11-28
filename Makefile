@@ -5,6 +5,10 @@ VENDOR ?= false ## Do you want to vendor dependencies before running unit tests?
 DISABLE_TEARDOWN ?= false ## Do you want to keep Selenium Hub running?
 LOG_LEVEL ?= info ## Changes log verbosity. Supported: info, debug
 
+export LOG_LEVEL
+export DISABLE_TEARDOWN
+export VENDOR
+
 .PHONY: clean vendor unit usage
 
 usage: ## Prints this help text.
