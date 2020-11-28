@@ -8,10 +8,12 @@ Pull requests welcome!
 # Deploying to Lambda
 
 1. Copy `.env.example` to `.env`. Fill in the values.
-2. Run `scripts/unit` to verify that everything is functional. It uses a saved copy of a sample
+2. Run `make unit` to verify that everything is functional. It uses a saved copy of a sample
    FlightAware flight and does not use the Internet at all.
-3. Run `scripts/integration` to ensure that the scripts work on Lambda for your AWS account.
-4. Run `ENVIRONMENT=production scripts/deploy` to deploy the scripts into a domain that you own.
+3. Run `make integration` to ensure that the scripts work on Lambda for your AWS account.*
+4. Run `make deploy` to deploy the scripts into a domain that you own.*
+
+* Denotes a step that is being ported over to Golang.
 
 # Caveats
 

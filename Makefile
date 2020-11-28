@@ -1,8 +1,10 @@
 MAKEFLAGS += --silent
 SHELL := /usr/bin/env bash
 DOCKER_COMPOSE := $(shell which docker-compose)
+VENDOR ?= false ## Do you want to vendor dependencies before running unit tests?
+DISABLE_TEARDOWN ?= false ## Do you want to keep Selenium Hub running?
 
-.PHONY: clean vendor unit
+.PHONY: clean vendor unit usage
 
 usage: ## Prints this help text.
 	printf "make [target]\n\
@@ -10,7 +12,11 @@ Hack on flightaware-bot.\n\
 \n\
 TARGETS\n\
 \n\
-$$(fgrep -h '##' $(MAKEFILE_LIST) | fgrep -v grep | sed 's/\\$$//' | sed -e 's/##//' | sed 's/^/  /g')\n\
+$$(fgrep -h '##' $(MAKEFILE_LIST) | fgrep -v '?=' | fgrep -v grep | sed 's/\\$$//' | sed -e 's/##//' | sed 's/^/  /g')\n\
+\n\
+ENVIRONMENT VARIABLES\n\
+\n\
+$$(fgrep '?=' $(MAKEFILE_LIST) | grep -v grep | sed 's/\?=.*##//' | sed 's/^/  /g')\n\
 \n\
 NOTES\n\
 \n\
@@ -18,7 +24,7 @@ NOTES\n\
 	- Adding a new stage? Add a comment with two pound signs after the stage name to add it to this help text.\n"
 
 clean: ## Remove vendored packages and other temporary files.
-	rm -r vendor
+	$(DOCKER_COMPOSE) down && rm -r vendor
 
 # TECH NOTE: Why are we rebuilding our Docker Compose images instead of using
 # volume mounts?
@@ -35,4 +41,10 @@ vendor: ## Vendors your dependencies.
 
 unit: vendor
 unit: ## Runs unit tests.
-	$(DOCKER_COMPOSE) build unit && $(DOCKER_COMPOSE) run --rm unit
+	$(DOCKER_COMPOSE) build unit && \
+		$(DOCKER_COMPOSE) up -d selenium && \
+		$(DOCKER_COMPOSE) run --rm unit; \
+		if test "$(DISABLE_TEARDOWN)" != "true"; \
+		then \
+			$(DOCKER_COMPOSE) down; \
+		fi
