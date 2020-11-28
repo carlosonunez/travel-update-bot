@@ -47,7 +47,7 @@ vendor: ## Vendors your dependencies.
 unit: vendor
 unit: ## Runs unit tests.
 	$(DOCKER_COMPOSE) build unit && \
-		$(DOCKER_COMPOSE) up -d selenium && \
+		$(DOCKER_COMPOSE) up --build -d selenium && \
 		$(DOCKER_COMPOSE) exec selenium sh -c "pkill chrome"; \
 		$(DOCKER_COMPOSE) run --rm unit; \
 		if test "$(DISABLE_TEARDOWN)" != "true"; \

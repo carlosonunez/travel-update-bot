@@ -3,14 +3,13 @@ package session
 import (
 	"errors"
 	"fmt"
-	"os"
-	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/carlosonunez/flightaware_bot/internal/constants"
 	"github.com/carlosonunez/flightaware_bot/internal/helpers"
+	"github.com/carlosonunez/flightaware_bot/internal/logging"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/tebeka/selenium"
 )
@@ -25,7 +24,7 @@ type FlightAwareSession struct {
 // Initialize starts up the selenium WebDriver and prepares it
 // to browse flightaware.com.
 func (f *FlightAwareSession) Initialize(flightNumber string) {
-	f.startLogging()
+	logging.Start()
 	f.flightAwarePage = fmt.Sprintf("%s/%s",
 		constants.FlightAwareBaseUrl,
 		flightNumber)
@@ -55,40 +54,27 @@ func (f *FlightAwareSession) Load() error {
 	return f.waitForPageToFinishLoading()
 }
 
-func (f *FlightAwareSession) startLogging() {
-	log.SetOutput(os.Stdout)
-	log.SetReportCaller(true)
-	if level, ok := os.LookupEnv("LOG_LEVEL"); ok {
-		switch strings.ToLower(level) {
-		case "info":
-			log.SetLevel(log.InfoLevel)
-		case "warning":
-			log.SetLevel(log.WarnLevel)
-		case "error":
-			log.SetLevel(log.FatalLevel)
-		case "debug":
-			selenium.SetDebug(true)
-			log.SetLevel(log.DebugLevel)
-		case "trace":
-			selenium.SetDebug(true)
-			log.SetLevel(log.TraceLevel)
-		}
-	}
-}
-
 func (f *FlightAwareSession) waitForPageToFinishLoading() error {
 	foundElements := make(chan bool, 1)
 	defer close(foundElements)
 
 	go func() {
-		elems, _ := f.remote.FindElements(selenium.ByClassName, "flightPageHeading")
-		foundElements <- (len(elems) > 0)
+		for {
+			elems, _ := f.remote.FindElements(selenium.ByXPATH, "//*[@class='flightPageHeading']")
+			if len(elems) > 0 {
+				log.Debug("FlightAware has loaded.")
+				foundElements <- true
+				return
+			}
+			log.Debug("FlightAware hasn't loaded yet.")
+			time.Sleep(1 * time.Second)
+		}
 	}()
 
 	select {
 	case <-foundElements:
 		return nil
-	case <-time.After(constants.FlightAwarePageTimeoutSeconds):
+	case <-time.After(constants.FlightAwarePageTimeoutSeconds * time.Second):
 		return errors.New("Timed out while waiting for FlightAware to finish loading")
 	}
 }
