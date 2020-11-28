@@ -30,7 +30,6 @@ services:
     command:
       - go
       - test
-      - -tags=unit
   integration-setup:
     extends: serverless
     entrypoint: bash
