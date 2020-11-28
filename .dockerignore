@@ -4,3 +4,4 @@ ruby/
 env.*
 env
 env.example
+.git/
