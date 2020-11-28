@@ -3,6 +3,7 @@ SHELL := /usr/bin/env bash
 DOCKER_COMPOSE := $(shell which docker-compose)
 VENDOR ?= false ## Do you want to vendor dependencies before running unit tests?
 DISABLE_TEARDOWN ?= false ## Do you want to keep Selenium Hub running?
+LOG_LEVEL ?= info ## Changes log verbosity. Supported: info, debug
 
 .PHONY: clean vendor unit usage
 
