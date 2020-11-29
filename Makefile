@@ -1,15 +1,14 @@
 MAKEFLAGS += --silent
 SHELL := /usr/bin/env bash
 DOCKER_COMPOSE := $(shell which docker-compose)
-VENDOR ?= false ## Do you want to vendor dependencies before running unit tests?
-DISABLE_TEARDOWN ?= false ## Do you want to keep Selenium Hub running?
+VENDOR ?= false ## Do you want to vendor dependencies before running test tests?
 LOG_LEVEL ?= info ## Changes log verbosity. Supported: info, debug
 
 export LOG_LEVEL
 export DISABLE_TEARDOWN
 export VENDOR
 
-.PHONY: clean vendor unit usage
+.PHONY: clean vendor test usage
 
 usage: ## Prints this help text.
 	printf "make [target]\n\
@@ -44,12 +43,11 @@ vendor: ## Vendors your dependencies.
 		$(DOCKER_COMPOSE) build vendor && $(DOCKER_COMPOSE) run --rm vendor; \
 	fi
 
-unit: vendor
-unit: ## Runs unit tests.
-	$(DOCKER_COMPOSE) build unit && \
-		$(DOCKER_COMPOSE) up --build -d selenium && \
-		$(DOCKER_COMPOSE) exec selenium sh -c "pkill chrome"; \
-		$(DOCKER_COMPOSE) run --rm unit; \
+test: vendor
+test: ## Runs test tests.
+	$(DOCKER_COMPOSE) up -d local-flightaware && \
+		$(DOCKER_COMPOSE) build test && \
+		$(DOCKER_COMPOSE) run --rm test; \
 		if test "$(DISABLE_TEARDOWN)" != "true"; \
 		then \
 			$(DOCKER_COMPOSE) down; \
