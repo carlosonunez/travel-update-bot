@@ -2,21 +2,18 @@ package flightawarebot
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/carlosonunez/flightaware_bot/internal/constants"
 	"github.com/carlosonunez/flightaware_bot/internal/constants/classes"
 	"github.com/carlosonunez/flightaware_bot/internal/constants/selectors"
 	"github.com/carlosonunez/flightaware_bot/internal/logging"
+	"github.com/carlosonunez/flightaware_bot/internal/session"
 
 	log "github.com/sirupsen/logrus"
 )
-
-type flightAwareSessionInterface interface {
-	Initialize(string)
-	FindElementsByClassName(string) ([]string, error)
-	Load() error
-}
 
 // Flight represents the data we care about from Flightaware.
 type Flight struct {
@@ -31,12 +28,17 @@ type Flight struct {
 	ArrivalTime     string
 }
 
-func getFlight(f flightAwareSessionInterface, flightID string) (Flight, error) {
+func getFlight(flightID string) (Flight, error) {
 	// This parses a Flightaware page and returns flight data from it.
 
 	logging.Start()
 
-	f.Initialize(flightID)
+	faBaseURL := constants.FlightAwareBaseUrl
+	if val, ok := os.LookupEnv("FLIGHTAWARE_BASE_URL"); ok {
+		faBaseURL = val
+	}
+
+	f := session.NewSession(faBaseURL, flightID)
 	err := f.Load()
 	if err != nil {
 		return Flight{}, fmt.Errorf("Failed to render FlightAware page: %s", err)
@@ -58,7 +60,7 @@ func getFlight(f flightAwareSessionInterface, flightID string) (Flight, error) {
 	return data, nil
 }
 
-func fromPage(className string, f flightAwareSessionInterface) string {
+func fromPage(className string, f *session.FlightAwareSession) string {
 	switch className {
 	case classes.FlightIdentifierClass:
 		return flightNumber(textFromElementOrPanic(f, className))
@@ -75,7 +77,7 @@ func fromPage(className string, f flightAwareSessionInterface) string {
 	}
 }
 
-func textFromElementOrPanic(f flightAwareSessionInterface, id string, idx ...int) string {
+func textFromElementOrPanic(f *session.FlightAwareSession, id string, idx ...int) string {
 	if len(idx) > 1 {
 		panic("textFromElementOrPanic only takes three arguments; more were provided.")
 	}
@@ -102,14 +104,14 @@ func originCity(elem string) string {
 	return fixCityString(strings.TrimSpace(elem))
 }
 
-func departOrArriveTime(f flightAwareSessionInterface, className string) string {
+func departOrArriveTime(f *session.FlightAwareSession, className string) string {
 	dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
 	dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))
 	timeData := strings.TrimSpace(textFromElementOrPanic(f, timeClass, timeSelector))
 	return formattedDateTime(dateData, timeData)
 }
 
-func takeoffOrLandingTime(f flightAwareSessionInterface, className string) string {
+func takeoffOrLandingTime(f *session.FlightAwareSession, className string) string {
 	const noTimeFound = "--"
 	dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
 	dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))

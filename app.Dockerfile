@@ -3,7 +3,7 @@ MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 ENV GITHUB_REPO=carlosonunez/flightaware-bot
 ENV PROJECT_DIR=$GOPATH/github.com/$GITHUB_REPO
 
-RUN apk add git gcc musl-dev
+RUN apk add git gcc musl-dev firefox
 WORKDIR $PROJECT_DIR/src
 
 # NOTE: Ensure that /data exists in the image used to run Selenium Hub and that
