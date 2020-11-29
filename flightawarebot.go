@@ -28,7 +28,8 @@ type Flight struct {
 	ArrivalTime     string
 }
 
-func getFlight(flightID string) (Flight, error) {
+// GetFlight fetches a flight from flightaware.com and returns it as a Flight.
+func GetFlight(flightID string) (Flight, error) {
 	// This parses a Flightaware page and returns flight data from it.
 
 	logging.Start()

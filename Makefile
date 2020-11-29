@@ -8,7 +8,7 @@ export LOG_LEVEL
 export DISABLE_TEARDOWN
 export VENDOR
 
-.PHONY: clean vendor test usage
+.PHONY: clean vendor unit local_e2e usage
 
 usage: ## Prints this help text.
 	printf "make [target]\n\
@@ -43,12 +43,20 @@ vendor: ## Vendors your dependencies.
 		$(DOCKER_COMPOSE) build vendor && $(DOCKER_COMPOSE) run --rm vendor; \
 	fi
 
-test: vendor
-test: ## Runs test tests.
+unit: vendor
+unit: ## Runs unit tests.
+	$(DOCKER_COMPOSE) build unit && \
+	$(DOCKER_COMPOSE) run --rm unit $$(grep -r "+build unit" . | \
+		grep -v Makefile | \
+		cut -f1 -d : | \
+		tr "\n" " " )
+
+
+local_e2e: vendor
+local_e2e: ## Runs local end-to-end tests against a local webserver.
 	$(DOCKER_COMPOSE) up -d local-flightaware && \
-		$(DOCKER_COMPOSE) build test && \
-		$(DOCKER_COMPOSE) run --rm test; \
-		if test "$(DISABLE_TEARDOWN)" != "true"; \
-		then \
-			$(DOCKER_COMPOSE) down; \
-		fi
+		$(DOCKER_COMPOSE) build local_e2e && \
+		$(DOCKER_COMPOSE) run --rm local_e2e $$(grep -r "+build local_e2e" . | \
+			grep -v Makefile | \
+			cut -f1 -d : | \
+			tr "\n" " ")
