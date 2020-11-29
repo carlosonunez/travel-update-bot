@@ -61,40 +61,66 @@ func getFlight(f flightAwareSessionInterface, flightID string) (Flight, error) {
 func fromPage(className string, f flightAwareSessionInterface) string {
 	switch className {
 	case classes.FlightIdentifierClass:
-		return strings.TrimSpace(strings.Split(textFromElementOrPanic(f, className), "/")[0])
+		return flightNumber(textFromElementOrPanic(f, className))
 	case classes.OriginClass, classes.DestinationClass:
-		data := strings.TrimSpace(textFromElementOrPanic(f, className, selectors.AirportIATA))
-		return strings.Split(data, "\n")[0]
+		return airportIATA(textFromElementOrPanic(f, className, selectors.AirportIATA))
 	case classes.OriginCityClass, classes.DestinationCityClass:
-		return fixCityString(strings.TrimSpace(textFromElementOrPanic(f, className)))
+		return originCity(textFromElementOrPanic(f, className))
 	case classes.DepartureTimeClass, classes.ArrivalTimeClass:
-		dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
-		dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))
-		timeData := strings.TrimSpace(textFromElementOrPanic(f, timeClass, timeSelector))
-		return formattedDateTime(dateData, timeData)
-	case classes.EstTakeoffTimeClass:
-		dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
-		dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))
-		timeData := strings.TrimSpace(textFromElementOrPanic(f, timeClass, timeSelector))
-		if timeNotAvailableYet(timeData) {
-			return fromPage(classes.DepartureTimeClass, f)
-		}
-		return formattedDateTime(dateData, timeData)
-	case classes.EstLandingTimeClass:
-		dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
-		dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))
-		timeData := strings.TrimSpace(textFromElementOrPanic(f, timeClass, timeSelector))
-		if timeNotAvailableYet(timeData) {
-			return fromPage(classes.ArrivalTimeClass, f)
-		}
-		return formattedDateTime(dateData, timeData)
+		return departOrArriveTime(f, className)
+	case classes.EstTakeoffTimeClass, classes.EstLandingTimeClass:
+		return takeoffOrLandingTime(f, className)
 	default:
 		panic(fmt.Sprintf("Unknown class: %s", className))
 	}
 }
 
-func timeNotAvailableYet(t string) bool {
-	return t == "--"
+func textFromElementOrPanic(f flightAwareSessionInterface, id string, idx ...int) string {
+	if len(idx) > 1 {
+		panic("textFromElementOrPanic only takes three arguments; more were provided.")
+	}
+	elems, err := f.FindElementsByClassName(id)
+	if err != nil {
+		panic(err)
+	}
+	if len(idx) > 0 {
+		return elems[idx[0]]
+	}
+	return elems[0]
+}
+
+func flightNumber(elem string) string {
+	return strings.TrimSpace(strings.Split(elem, "/")[0])
+}
+
+func airportIATA(elem string) string {
+	data := strings.TrimSpace(elem)
+	return strings.Split(data, "\n")[0]
+}
+
+func originCity(elem string) string {
+	return fixCityString(strings.TrimSpace(elem))
+}
+
+func departOrArriveTime(f flightAwareSessionInterface, className string) string {
+	dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
+	dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))
+	timeData := strings.TrimSpace(textFromElementOrPanic(f, timeClass, timeSelector))
+	return formattedDateTime(dateData, timeData)
+}
+
+func takeoffOrLandingTime(f flightAwareSessionInterface, className string) string {
+	const noTimeFound = "--"
+	dateClass, dateSelector, timeClass, timeSelector := dtClassesAndSelectors(className)
+	dateData := strings.TrimSpace(textFromElementOrPanic(f, dateClass, dateSelector))
+	timeData := strings.TrimSpace(textFromElementOrPanic(f, timeClass, timeSelector))
+	if timeData == noTimeFound {
+		if className == classes.EstTakeoffTimeClass {
+			return fromPage(classes.DepartureTimeClass, f)
+		}
+		return fromPage(classes.ArrivalTimeClass, f)
+	}
+	return formattedDateTime(dateData, timeData)
 }
 
 func formattedDateTime(d string, t string) string {
@@ -167,18 +193,4 @@ func fixCityString(s string) string {
 	parts := strings.Split(s, ",")
 	city := strings.ToLower(parts[0])
 	return fmt.Sprintf("%s,%s", strings.Title(city), strings.Join(parts[1:], ""))
-}
-
-func textFromElementOrPanic(f flightAwareSessionInterface, id string, idx ...int) string {
-	if len(idx) > 1 {
-		panic("textFromElementOrPanic only takes three arguments; more were provided.")
-	}
-	elems, err := f.FindElementsByClassName(id)
-	if err != nil {
-		panic(err)
-	}
-	if len(idx) > 0 {
-		return elems[idx[0]]
-	}
-	return elems[0]
 }
