@@ -39,6 +39,7 @@ func getFlight(flightID string) (Flight, error) {
 	}
 
 	f := session.NewSession(faBaseURL, flightID)
+	defer f.Close()
 	err := f.Load()
 	if err != nil {
 		return Flight{}, fmt.Errorf("Failed to render FlightAware page: %s", err)
