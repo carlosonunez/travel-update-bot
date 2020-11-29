@@ -1,12 +1,5 @@
 version: '3.7'
 services:
-  selenium:
-    build:
-      dockerfile: selenium.Dockerfile
-      context: .
-    ports:
-      - 4444:4444
-      - 5900:5900
   serverless:
     env_file: .env
     working_dir: /app
