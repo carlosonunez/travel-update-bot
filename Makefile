@@ -30,13 +30,6 @@ NOTES\n\
 clean: ## Remove vendored packages and other temporary files.
 	$(DOCKER_COMPOSE) down && rm -r vendor
 
-# TECH NOTE: Why are we rebuilding our Docker Compose images instead of using
-# volume mounts?
-#
-# This was developed on a Mac. Docker for Mac has notoriously bad IO performance
-# with volume mounts with the added bonus of cutting my MacBook's battery life in half.
-# While building the Docker image adds some latency to our tests, it speeds up
-# tests overall and preserves energy.
 vendor: ## Vendors your dependencies.
 	if test "$(VENDOR)" == "true"; \
 	then \
@@ -45,7 +38,6 @@ vendor: ## Vendors your dependencies.
 
 unit: vendor
 unit: ## Runs unit tests.
-	$(DOCKER_COMPOSE) build unit && \
 	$(DOCKER_COMPOSE) run --rm unit $$(grep -r "+build unit" . | \
 		grep -v Makefile | \
 		cut -f1 -d : | \
@@ -55,7 +47,6 @@ unit: ## Runs unit tests.
 local_e2e: vendor
 local_e2e: ## Runs local end-to-end tests against a local webserver.
 	$(DOCKER_COMPOSE) up -d local-flightaware && \
-		$(DOCKER_COMPOSE) build local_e2e && \
 		$(DOCKER_COMPOSE) run --rm local_e2e $$(grep -r "+build local_e2e" . | \
 			grep -v Makefile | \
 			cut -f1 -d : | \
