@@ -3,6 +3,7 @@ package session
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -37,6 +38,11 @@ func NewSession(baseURL string, flightID string) *FlightAwareSession {
 		service:         service,
 		remote:          remote,
 	}
+}
+
+// Close closes an existing session.
+func (f *FlightAwareSession) Close() error {
+	return f.service.Stop()
 }
 
 // Load is a convenience method for browsing to the FlightAware page set by Initialize.
@@ -90,14 +96,18 @@ func (f *FlightAwareSession) waitForPageToFinishLoading() error {
 
 func newHeadlessFirefoxService() (*selenium.Service, selenium.Capabilities) {
 	capabilities := selenium.Capabilities{}
+	var outputDevice io.Writer
+	if log.GetLevel() == log.DebugLevel || log.GetLevel() == log.TraceLevel {
+		outputDevice = os.Stderr
+	}
 	service, err := selenium.NewGeckoDriverService("/usr/local/bin/geckodriver",
 		4444,
-		selenium.Output(os.Stderr))
+		selenium.Output(outputDevice))
 	if err != nil {
 		panic(err)
 	}
 	capabilities.AddFirefox(firefox.Capabilities{
-		Binary: "/usr/bin/firefox",
+		Binary: "/usr/local/bin/firefox",
 		Args:   []string{"--headless"},
 	})
 	return service, capabilities
