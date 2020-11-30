@@ -1,10 +1,16 @@
-package flightawarebot
+// +build unit
 
-import "testing"
+package ping_test
+
+import (
+	"testing"
+
+	"github.com/carlosonunez/flightaware_bot/internal/functions/ping"
+)
 
 func TestPingSuccessful(t *testing.T) {
 	expected := "hello"
-	got, err := Ping()
+	got, err := ping.Ping()
 	if err != nil {
 		t.Error(err)
 	}

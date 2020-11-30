@@ -5,7 +5,7 @@ package flightawarebot_test
 import (
 	"testing"
 
-	flightawarebot "github.com/carlosonunez/flightaware_bot"
+	"github.com/carlosonunez/flightaware_bot/internal/functions/flightawarebot"
 	"github.com/google/go-cmp/cmp"
 )
 
