@@ -8,7 +8,7 @@ service:
 frameworkVersion: '>=1.0.0'
 
 layers:
-  phantomjs:
+  firefox:
     package:
       artifact: layers/firefox.zip
 
@@ -18,16 +18,16 @@ provider:
   region: ${env:AWS_REGION, 'us-east-2'}
   memorySize: 1024
   deploymentBucket:
-    name: ${env:SERVERLESS_BUCKET_NAME}
+    name: ${env:SERVERLESS_BUCKET_NAME}-${env:SERVERLESS_ENVIRONMENT}
   deploymentPrefix: serverless
   apiKeys:
-    - default_key
+    - ${self:custom.keyName.${opt:stage, self:provider.stage}}
   tracing:
     apiGateway: true
 
 package:
   exclude:
-    - */**
+    - ./**
   include:
     - bin/**
 
@@ -42,9 +42,16 @@ functions:
           method: get
 
 custom:
+  keyName:
+    develop: default-key-test
+    v1: default-key-production
+  enableCustomDomain:
+    develop: false
+    v1: true
   customDomain:
     stage: v1
     domainName: ${env:DOMAIN_PATH}.${env:DOMAIN_TLD}
     certificateArn: ${file(./secrets/certificate_arn)}
     basePath: 'v1'
     createRoute53Record: true
+    enabled: ${self:custom.enableCustomDomain.${opt:stage, self:provider.stage}}

@@ -18,11 +18,17 @@ services:
     working_dir: /app
   validate-serverless-infra:
     extends: terraform
+    environment:
+      TERRAFORM_STATE_S3_KEY: ${TERRAFORM_STATE_S3_KEY}
+      TF_VAR_environment: "production"
     command:
       - plan
       - --input=false
   deploy-serverless-infra:
     extends: terraform
+    environment:
+      TERRAFORM_STATE_S3_KEY: ${TERRAFORM_STATE_S3_KEY}
+      TF_VAR_environment: "production"
     command:
       - apply
       - --auto-approve=true
@@ -31,17 +37,33 @@ services:
     extends: serverless
     environment:
       SLS_DEBUG: "true" # this command is janky af
+      SERVERLESS_ENVIRONMENT: "production"
     command:
       - --stage=v1
       - create_domain
   deploy-serverless-functions:
     extends: serverless
+    environment:
+      SERVERLESS_ENVIRONMENT: "production"
     command:
       - --stage=v1
       - deploy
+  destroy-serverless-infra-test:
+    extends: terraform
+    environment:
+      TERRAFORM_STATE_S3_KEY: ${TERRAFORM_STATE_S3_KEY}_test
+      TF_VAR_environment: "test"
+      TF_VAR_serverless_bucket_name: ${TF_VAR_serverless_bucket_name}-test
+      TF_VAR_no_certs: "true"
+    command:
+      - destroy
+      - --input=false
   deploy-serverless-infra-test:
     extends: terraform
     environment:
+      TERRAFORM_STATE_S3_KEY: ${TERRAFORM_STATE_S3_KEY}_test
+      TF_VAR_environment: "test"
+      TF_VAR_serverless_bucket_name: ${TF_VAR_serverless_bucket_name}-test
       TF_VAR_no_certs: "true"
     command:
       - apply
@@ -49,6 +71,8 @@ services:
       - --input=false
   deploy-serverless-functions-test:
     extends: serverless
+    environment:
+      SERVERLESS_ENVIRONMENT: "test"
     command:
       - deploy
       - --stage

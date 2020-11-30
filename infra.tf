@@ -8,6 +8,10 @@ provider "aws" {
   region = "us-east-1"
 }
 
+variable "environment" {
+  description = "The environment this is running in."
+}
+
 variable "serverless_bucket_name" {
   description = "The bucket into which Serverless will deploy the app."
 }
@@ -36,7 +40,7 @@ resource "aws_s3_bucket" "serverless_bucket" {
 }
 
 resource "aws_iam_user" "app" {
-  name = "flight_info_botapp_account"
+  name = "flight_info_botapp_account_${var.environment}"
 }
 
 resource "aws_iam_access_key" "app" {
@@ -44,7 +48,7 @@ resource "aws_iam_access_key" "app" {
 }
 
 resource "aws_iam_user_policy" "app" {
-  name = "flight_info_botapp_account_policy"
+  name = "flight_info_botapp_account_policy_${var.environment}"
   user = "${aws_iam_user.app.name}"
   policy = <<EOF
 {
@@ -73,10 +77,10 @@ resource "aws_acm_certificate" "app_cert" {
 resource "aws_route53_record" "app_cert_validation_cname" {
   provider = aws.aws_acm_cert_region_for_edge
   count   = "${var.no_certs == "true" ? 0 : 1 }"
-  name    = "${aws_acm_certificate.app_cert.0.domain_validation_options.0.resource_record_name}"
-  type    = "${aws_acm_certificate.app_cert.0.domain_validation_options.0.resource_record_type}"
+  name    = "${tolist(aws_acm_certificate.app_cert.0.domain_validation_options).0.resource_record_name}"
+  type    = "${tolist(aws_acm_certificate.app_cert.0.domain_validation_options).0.resource_record_type}"
   zone_id = "${data.aws_route53_zone.app_dns_zone.id}"
-  records = ["${aws_acm_certificate.app_cert.0.domain_validation_options.0.resource_record_value}"]
+  records = ["${tolist(aws_acm_certificate.app_cert.0.domain_validation_options).0.resource_record_value}"]
   ttl     = 60
 }
 

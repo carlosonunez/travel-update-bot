@@ -37,6 +37,15 @@ vendor: ## Vendors your dependencies.
 		$(DOCKER_COMPOSE) build vendor && $(DOCKER_COMPOSE) run --rm vendor; \
 	fi
 
+vendor_firefox: ## Copies the firefox Lambda layer locally. Remove firefox.zip to re-run.
+	if ! test -f layers/firefox.zip; \
+	then \
+		mkdir -p layers && \
+			url=$$(grep -r "ENV FIREFOX_LAMBDA_URL" app.Dockerfile | cut -f2 -d =); \
+			curl -Lo layers/firefox.zip $$url; \
+	fi
+
+
 build: vendor
 build:
 	find ./*.go -maxdepth 1 | \
@@ -51,7 +60,7 @@ unit: ## Runs unit tests.
 	$(DOCKER_COMPOSE) run --rm unit ./...
 
 integration: deploy_integration
-integration:
+integration: ## Runs integration tests.
 	$(DOCKER_COMPOSE) run --rm integration ./...
 integration: destroy_integration
 
@@ -61,11 +70,12 @@ local_e2e: ## Runs local end-to-end tests against a local webserver.
 	$(DOCKER_COMPOSE) up -d local-flightaware && \
 		$(DOCKER_COMPOSE) run --rm local_e2e ./...
 
-deploy_integration: vendor build
-deploy_integration:
+deploy_integration: vendor vendor_firefox build
+deploy_integration: ## Deploys the FlightAware serverless functions into an integration env.
 	for stage in deploy-serverless-infra-test deploy-serverless-functions-test; \
 	do $(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm "$$stage" || exit 1; \
 	done
 
-destroy_integration:
-	$(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm serverless remove --stage develop
+destroy_integration: ## Destroys the serverless integration environment.
+	$(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm serverless remove --stage develop && \
+	$(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm destroy-serverless-infra-test
