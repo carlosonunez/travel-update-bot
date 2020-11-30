@@ -1,0 +1,4 @@
+v1:
+  - serverless-domain-manager
+develop:
+  - serverless-offline

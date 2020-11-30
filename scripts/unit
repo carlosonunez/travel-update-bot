@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+REVENDOR="${REVENDOR:-false}"
+if ! test -d "vendor/bundle" || test "$REVENDOR" == "true"
+then
+  docker-compose -f docker-compose.deploy.yml run --rm vendor-dependencies
+fi
+docker-compose run --rm unit

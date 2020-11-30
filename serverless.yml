@@ -1,0 +1,50 @@
+---
+plugins:
+  - serverless-domain-manager
+
+service:
+  name: flightaware-flight-info
+
+frameworkVersion: '>=1.0.0'
+
+layers:
+  phantomjs:
+    package:
+      artifact: layers/firefox.zip
+
+provider:
+  name: aws
+  runtime: go1.x
+  region: ${env:AWS_REGION, 'us-east-2'}
+  memorySize: 1024
+  deploymentBucket:
+    name: ${env:SERVERLESS_BUCKET_NAME}
+  deploymentPrefix: serverless
+  apiKeys:
+    - default_key
+  tracing:
+    apiGateway: true
+
+package:
+  exclude:
+    - */**
+  include:
+    - bin/**
+
+functions:
+  ping:
+    handler: bin/healthcheck
+    description: Tests that flight info bot is up and running.
+    timeout: 30
+    events:
+      - http:
+          path: ping
+          method: get
+
+custom:
+  customDomain:
+    stage: v1
+    domainName: ${env:DOMAIN_PATH}.${env:DOMAIN_TLD}
+    certificateArn: ${file(./secrets/certificate_arn)}
+    basePath: 'v1'
+    createRoute53Record: true
