@@ -1,6 +1,7 @@
 MAKEFLAGS += --silent
 SHELL := /usr/bin/env bash
 DOCKER_COMPOSE := $(shell which docker-compose)
+DOCKER_COMPOSE_DEPLOY := $(shell which docker-compose) -f docker-compose.deploy.yml
 VENDOR ?= false ## Do you want to vendor dependencies before running test tests?
 LOG_LEVEL ?= info ## Changes log verbosity. Supported: info, debug
 .DEFAULT_GOAL := build
@@ -9,7 +10,7 @@ export LOG_LEVEL
 export DISABLE_TEARDOWN
 export VENDOR
 
-.PHONY: clean vendor unit local_e2e usage build integration deploy_integration
+.PHONY: clean vendor unit local_e2e usage build integration deploy_integration destroy_integration integration_test
 
 usage: ## Prints this help text.
 	printf "make [target]\n\
@@ -49,6 +50,7 @@ vendor_firefox: ## Copies the firefox Lambda layer locally. Remove firefox.zip t
 build: vendor
 build:
 	find ./*.go -maxdepth 1 | \
+		grep -v _test | \
 		while read file; \
 		do \
 			name=$$(basename $$file | sed 's/.go$$//'); \
@@ -59,10 +61,14 @@ unit: vendor
 unit: ## Runs unit tests.
 	$(DOCKER_COMPOSE) run --rm unit ./...
 
-integration: deploy_integration
-integration: ## Runs integration tests.
-	$(DOCKER_COMPOSE) run --rm integration ./...
-integration: destroy_integration
+integration: deploy_integration integration_test destroy_integration ## Runs integration tests with setup and teardown.
+
+integration_test: ## Runs integration tests by themselves. Tests should be at the top-level of this repo.
+	endpoint=$$($(DOCKER_COMPOSE_DEPLOY) run --rm serverless info --stage develop | \
+					 grep -r "GET -" | \
+					 sed 's/.*GET - //' | \
+					 sed 's/\(\/develop\).*/\1/'); \
+	API_ENDPOINT=$$endpoint $(DOCKER_COMPOSE) run --rm integration .
 
 
 local_e2e: vendor
@@ -73,9 +79,9 @@ local_e2e: ## Runs local end-to-end tests against a local webserver.
 deploy_integration: vendor vendor_firefox build
 deploy_integration: ## Deploys the FlightAware serverless functions into an integration env.
 	for stage in deploy-serverless-infra-test deploy-serverless-functions-test; \
-	do $(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm "$$stage" || exit 1; \
+	do $(DOCKER_COMPOSE_DEPLOY) -f run --rm "$$stage" || exit 1; \
 	done
 
 destroy_integration: ## Destroys the serverless integration environment.
-	$(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm serverless remove --stage develop && \
-	$(DOCKER_COMPOSE) -f docker-compose.deploy.yml run --rm destroy-serverless-infra-test
+	$(DOCKER_COMPOSE_DEPLOY) run --rm serverless remove --stage develop && \
+	$(DOCKER_COMPOSE_DEPLOY) run --rm destroy-serverless-infra-test

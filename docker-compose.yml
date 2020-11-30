@@ -68,7 +68,11 @@ services:
     build:
       dockerfile: app.Dockerfile
       context: .
-    command:
+    environment:
+      API_ENDPOINT: $API_ENDPOINT
+    volumes:
+      - $PWD:/go/github.com/carlosonunez/flightaware-bot/src
+    entrypoint:
       - go
       - test
       - -tags=integration
