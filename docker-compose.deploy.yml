@@ -1,0 +1,55 @@
+version: '2.2'
+services:
+  serverless:
+    build:
+      dockerfile: serverless.Dockerfile
+      context: .
+    env_file: .env
+    volumes:
+      - $PWD:/app
+    working_dir: /app
+  terraform:
+    build:
+      dockerfile: terraform.Dockerfile
+      context: .
+    env_file: .env
+    volumes:
+      - $PWD:/app
+    working_dir: /app
+  validate-serverless-infra:
+    extends: terraform
+    command:
+      - plan
+      - --input=false
+  deploy-serverless-infra:
+    extends: terraform
+    command:
+      - apply
+      - --auto-approve=true
+      - --input=false
+  deploy-serverless-domain:
+    extends: serverless
+    environment:
+      SLS_DEBUG: "true" # this command is janky af
+    command:
+      - --stage=v1
+      - create_domain
+  deploy-serverless-functions:
+    extends: serverless
+    command:
+      - --stage=v1
+      - deploy
+  deploy-serverless-infra-test:
+    extends: terraform
+    environment:
+      TF_VAR_no_certs: "true"
+    command:
+      - apply
+      - --auto-approve=true
+      - --input=false
+  deploy-serverless-functions-test:
+    extends: serverless
+    command:
+      - deploy
+      - --stage
+      - develop

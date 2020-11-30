@@ -1,14 +1,9 @@
 version: '3.7'
 services:
-  serverless:
-    env_file: .env
-    working_dir: /app
-    build:
-      dockerfile: serverless.Dockerfile
-      context: .
   vendor:
     env_file: .env
     volumes:
+      - $PWD:/go/github.com/carlosonunez/flightaware-bot/src
       - $PWD/vendor:/vendor
     build:
       dockerfile: app.Dockerfile
@@ -24,6 +19,21 @@ services:
     volumes:
       - $PWD/test/fixtures:/etc/nginx/html:ro
       - $PWD/test/nginx.conf:/etc/nginx/nginx.conf:ro
+  build:
+    env_file: .env
+    build:
+      dockerfile: app.Dockerfile
+      context: .
+    environment:
+      GOOS: linux
+    volumes:
+      - $PWD:/go/github.com/carlosonunez/flightaware-bot/src
+      - $PWD/bin:/go/github.com/carlosonunez/flightaware-bot/bin
+    entrypoint:
+      - go
+      - build
+      - -ldflags
+      - "-s -w"
   unit:
     env_file: .env
     environment:
@@ -53,18 +63,6 @@ services:
       - go
       - test
       - -tags=local_e2e
-  integration-setup:
-    extends: serverless
-    entrypoint: bash
-    command:
-      - -c
-      - ./scripts/integration_setup.sh
-  integration-teardown:
-    extends: serverless
-    command:
-      - remove
-      - --stage
-      - develop
   integration:
     env_file: .env
     build:
