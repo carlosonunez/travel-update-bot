@@ -79,9 +79,11 @@ local_e2e: ## Runs local end-to-end tests against a local webserver.
 deploy_integration: vendor vendor_firefox build
 deploy_integration: ## Deploys the FlightAware serverless functions into an integration env.
 	for stage in deploy-serverless-infra-test deploy-serverless-functions-test; \
-	do $(DOCKER_COMPOSE_DEPLOY) -f run --rm "$$stage" || exit 1; \
+	do $(DOCKER_COMPOSE_DEPLOY) run --rm "$$stage" || exit 1; \
 	done
 
 destroy_integration: ## Destroys the serverless integration environment.
-	$(DOCKER_COMPOSE_DEPLOY) run --rm serverless remove --stage develop && \
-	$(DOCKER_COMPOSE_DEPLOY) run --rm destroy-serverless-infra-test
+	set -x; \
+	for stage in destroy-serverless-functions-test destroy-serverless-infra-test; \
+	do $(DOCKER_COMPOSE_DEPLOY) run --rm "$$stage" || exit 1; \
+	done
