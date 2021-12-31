@@ -1,11 +1,11 @@
-FROM lambci/lambda:build-ruby2.5
+FROM ruby:2.5-alpine
 MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 ARG ENVIRONMENT
 
-RUN yum install -y ruby25-devel gcc libxml2 libxml2-devel libxslt libxslt-devel patch
+RUN apk update && apk add libffi-dev readline sqlite build-base\
+    libc-dev linux-headers libxml2-dev libxslt-dev readline-dev gcc libc-dev \
+    freetype fontconfig gcompat chromium chromium-chromedriver
 
-COPY include/phantomjs_lambda.zip /
-WORKDIR /opt
-RUN unzip /phantomjs_lambda.zip && rm /phantomjs_lambda.zip
+COPY . /var/task
 WORKDIR /var/task
-ENTRYPOINT ["ruby", "-e", "puts 'Welcome to flight-info'"]
+ENTRYPOINT ["ruby", "bin/flight-info.rb"]
