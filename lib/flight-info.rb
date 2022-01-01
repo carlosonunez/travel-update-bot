@@ -1,6 +1,6 @@
 require 'capybara'
 require 'capybara/dsl'
-require 'capybara/poltergeist'
+require 'selenium-webdriver'
 require 'json'
 require 'timeout'
 require 'time'
@@ -149,15 +149,19 @@ arrival time."
 
   def self.init_capybara
     Capybara.register_driver :headless_chrome do |app|
-      caps = Selenium::WebDriver::Remote::Capabilities.chrome(
-        chromeOptions: {
-          args: %w[headless enable-features=NetworkService,NetworkServiceInProcess no-sandbox]
+      caps = ::Selenium::WebDriver::Remote::Capabilities.chrome(
+        "goog:chromeOptions": {
+          args: %w[headless
+                   enable-features=NetworkService,NetworkServiceInProcess
+                   no-sandbox
+                   disable-dev-shm-usage
+                   disable-gpu]
         }
       )
 
       Capybara::Selenium::Driver.new(app,
                                      browser: :chrome,
-                                     desired_capabilities: caps)
+                                     capabilities: caps)
     end
 
     Capybara.default_driver = :headless_chrome
