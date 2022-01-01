@@ -1,7 +1,77 @@
 #!/usr/bin/env bash
-REVENDOR="${REVENDOR:-false}"
-if ! test -d "vendor/bundle" || test "$REVENDOR" == "true"
-then
-  docker-compose -f docker-compose.deploy.yml run --rm vendor-dependencies
-fi
-docker-compose run --rm unit
+SCRIPT_DIR="$(dirname "$0")"
+source "$SCRIPT_DIR/helpers/logging.sh"
+KEEP_ENV_UP="${KEEP_ENV_UP:-false}"
+FORCE_VENDOR="${FORCE_VENDOR:-false}"
+REBUILD_UNIT_SERVICE="${REBUILD_UNIT_SERVICE:-false}"
+
+# You might want to add a script that only triggers vendoring if specific changes
+# were found. To do that, add 'detect-changes.bash' to the 'helpers' directory.
+changes_detected() {
+  if test -f "$SCRIPT_DIR/helpers/detect-changes.bash"
+  then
+    "$SCRIPT_DIR/helpers/detect-changes.bash"
+  else
+    false
+  fi
+}
+
+# TODO: Move vendoring stuff into separate helper library.
+vendor_dependencies() {
+  if ! test -d "./vendor" || grep -Eiq '^true$' <<< "$FORCE_VENDOR" || changes_detected
+  then
+    info "Updating app dependencies."
+    if grep -Eiq '^true$' <<< "$FORCE_VENDOR" && test -d "./vendor"
+    then
+      rm -rf "./vendor"
+    fi
+    docker-compose build vendor && docker-compose run --rm vendor
+  fi
+}
+
+# To define "pre-unit" steps, create a script inside of 'helpers' called
+# "pre-unit.bash".
+pre_unit_steps() {
+  if test -f "$SCRIPT_DIR/helpers/pre-unit.bash"
+  then
+    info "Running pre-unit steps."
+    "$SCRIPT_DIR/helpers/pre-unit.bash"
+  fi
+}
+
+post_unit_steps() {
+  if test -f "$SCRIPT_DIR/helpers/post-unit.bash"
+  then
+    info "Running post-unit steps."
+    "$SCRIPT_DIR/helpers/post-unit.bash"
+  fi
+}
+
+update_app_into_unit_testing_service() {
+  if grep -Eiq '^true$' <<< "$REBUILD_UNIT_SERVICE" || changes_detected
+  then
+    info "App changes detected. Rebuilding unit Docker service."
+    docker-compose build unit || exit 1
+  fi
+}
+
+teardown() {
+  if [ "${KEEP_ENV_UP}" == "true" ]
+  then
+     info "Unit test services are still running. Run 'docker-compose down' to stop them."
+  else
+     docker-compose down
+  fi
+}
+
+run_unit_tests() {
+  docker-compose build unit && docker-compose run --service-ports --rm unit
+}
+
+
+vendor_dependencies &&
+pre_unit_steps &&
+update_app_into_unit_testing_service &&
+run_unit_tests &&
+post_unit_steps &&
+teardown

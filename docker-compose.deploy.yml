@@ -1,74 +1,80 @@
 version: '2.2'
 services:
-  vendor-dependencies:
-    build:
-      context: .
-    entrypoint: sh
-    volumes:
-      - "$PWD/Gemfile:/Gemfile"
-      - "$PWD/vendor:/vendor"
-    command:
-      - -c
-      - "bundle install --path /vendor/bundle"
-  vendor-dependencies-from-scratch:
-    build:
-      context: .
-    entrypoint: sh
-    volumes:
-      - "$PWD/vendor:/vendor"
-    command:
-      - -c
-      - "bundle install && cp -R /usr/local/bundle /vendor && cp /usr/bin/chromium-browser /vendor"
   serverless:
     build:
       dockerfile: serverless.Dockerfile
       context: .
     env_file: .env
-    volumes:
-      - $PWD:/app
+    environment:
+      - ENVIRONMENT=test
+      - SLS_WARNING_DISABLE=1
+      - SLS_DEPRECATION_DISABLE=1
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
     working_dir: /app
   terraform:
-    image: hashicorp/terraform
+    image: carlosnunez/terraform:0.13.5
     env_file: .env
+    environment:
+      - TF_CLI_ARGS_destroy="-force"
+      - TF_DATA_DIR=/tmp
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
     volumes:
       - $PWD:/app
     working_dir: /app
+    user: root
     entrypoint: 
       - sh
       - ./scripts/execute_terraform.sh
-  validate-serverless-infra:
+  validate-serverless-infra-production:
     extends: terraform
+    environment:
+      ENVIRONMENT: "production"
+      TF_VAR_environment: "production"
     command:
       - plan
       - --input=false
-  deploy-serverless-infra:
+  deploy-serverless-infra-production:
     extends: terraform
+    environment:
+      ENVIRONMENT: "production"
+      TF_VAR_environment: "production"
     command:
       - apply
       - --auto-approve=true
       - --input=false
-  deploy-serverless-domain:
+  deploy-serverless-domain-production:
     extends: serverless
     environment:
-      SLS_DEBUG: "true" # this command is janky af
+      ENVIRONMENT: "production"
     command:
-      - --stage=v1
       - create_domain
-  deploy-serverless-functions:
+      - --stage
+      - v1
+  deploy-serverless-functions-production:
     extends: serverless
+    environment:
+      ENVIRONMENT: "production"
     command:
-      - --stage=v1
       - deploy
+      - --stage
+      - v1
   deploy-serverless-infra-test:
     extends: terraform
     environment:
       TF_VAR_no_certs: "true"
+      TF_VAR_environment: "test"
     command:
       - apply
       - --auto-approve=true
       - --input=false
   deploy-serverless-functions-test:
     extends: serverless
+    environment:
+      ENVIRONMENT: "test"
     command:
       - deploy
       - --stage
