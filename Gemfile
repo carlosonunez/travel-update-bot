@@ -1,12 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'rspec'
-gem 'nokogiri', '1.8.3'
-gem 'rspec-expectations'
-gem 'logger'
-gem 'poltergeist'
 gem 'capybara'
+gem 'logger'
+gem 'nokogiri', '1.8.3'
+gem 'selenium-webdriver'
 group :test do
   gem 'pry'
+  gem 'rspec'
+  gem 'rspec-expectations'
 end
-
