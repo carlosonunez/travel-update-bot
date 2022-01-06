@@ -99,6 +99,10 @@ deploy_serverless_functions() {
     write_lambda_secrets_for_integration_testing
 }
 
+remove_secret_folder_if_present() {
+  test -d "$(dirname "$0")/../secrets" && rm -rf "$(dirname "$0")/../secrets"
+}
+
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
   usage

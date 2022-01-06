@@ -95,28 +95,6 @@ resource "aws_acm_certificate_validation" "app_cert" {
   validation_record_fqdns = ["${aws_route53_record.app_cert_validation_cname.0.fqdn}"]
 }
 
-resource "aws_dynamodb_table" "request_tokens_table" {
-  name = "${var.app_name}_request_tokens_${var.environment}"
-  hash_key = "token"
-  read_capacity = 2
-  write_capacity = 2
-  attribute {
-    name = "token"
-    type = "S"
-  }
-}
-
-resource "aws_dynamodb_table" "access_tokens_table" {
-  name = "${var.app_name}_access_tokens_${var.environment}"
-  hash_key = "access_key"
-  read_capacity = 2
-  write_capacity = 2
-  attribute {
-    name = "access_key"
-    type = "S"
-  }
-}
-
 output "app_account_ak" {
   value = aws_iam_access_key.app.id
 }

@@ -8,9 +8,9 @@ service:
 frameworkVersion: '>=1.0.0'
 
 layers:
-  phantomjs:
+  chromium:
     package:
-      artifact: include/phantomjs_lambda.zip
+      artifact: include/chromium.br
 
 provider:
   name: aws
@@ -46,7 +46,7 @@ functions:
     description: Tests that flight info bot is up and running.
     timeout: 30
     environment:
-      GEM_PATH: vendor/bundle/ruby/2.5.0
+      GEM_PATH: vendor/bundle
     events:
       - http:
           path: ping
@@ -57,9 +57,9 @@ functions:
     timeout: 30
     stage: develop
     environment:
-      GEM_PATH: vendor/bundle/ruby/2.5.0
+      GEM_PATH: vendor/bundle
     layers:
-      - { Ref: PhantomjsLambdaLayer }
+      - { Ref: ChromiumLambdaLayer }
     events:
       - http:
           path: testInternetAccess
@@ -70,9 +70,9 @@ functions:
     description: Gets flight information when given a flight number.
     timeout: 30
     environment:
-      GEM_PATH: vendor/bundle/ruby/2.5.0
+      GEM_PATH: vendor/bundle
     layers:
-      - { Ref: PhantomjsLambdaLayer }
+      - { Ref: ChromiumLambdaLayer }
     events:
       - http:
           path: flightInfo

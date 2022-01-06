@@ -47,11 +47,6 @@ update_app_in_integration_service() {
   docker-compose build integration
 }
 
-ensure_selenium_is_running() {
-  info "Starting selenium to enable webdriving."
-  docker-compose up -d "$(selenium_service)"
-}
-
 selenium_service() {
   if grep -Eiq 'arm' <<< "$(uname -m)"
   then
@@ -101,7 +96,6 @@ then
   vendor_dependencies
 fi
 update_app_in_integration_service &&
-ensure_selenium_is_running &&
 deploy_to_integration &&
 setup
 run_integration_tests

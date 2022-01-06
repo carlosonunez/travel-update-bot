@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+CHROMIUM_LAYER_VERSION="${CHROMIUM_LAYER_VERSION:-10.1}"
+CHROMIUM_LAYER_URI=https://github.com/alixaxel/chrome-aws-lambda/raw/v${CHROMIUM_LAYER_VERSION}/bin/chromium.br
 source $(dirname "$0")/helpers/shared_secrets.sh
 set -e
 
@@ -33,4 +35,12 @@ get_api_gateway_endpoint() {
   write_secret "$api_key" "api_key"
 }
 
-get_api_gateway_endpoint
+fetch_chromium_lambda_layer() {
+  chromium_include_fp="$(dirname "$0"/../include/chromium.br)"
+  if ! test -f "$chromium_include_fp"
+  then
+    curl -Lo "$chromium_include_fp" "$CHROMIUM_LAYER_URI"
+  fi
+}
+
+get_api_gateway_endpoint && fetch_chromium_lambda_layer
