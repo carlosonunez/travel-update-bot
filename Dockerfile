@@ -17,10 +17,13 @@ RUN yum -y install amazon-linux-extras yum-utils
 RUN amazon-linux-extras install epel -y && yum-config-manager --enable epel
 RUN yum -y install chromium chromedriver
 
+# Install nokogiri deps
+RUN yum -y install kernel-devel gcc gcc-c++ make zlib1g-devel libxml2-devel \
+    libxslt-devel ruby-devel tar gzip patch
+
 COPY Gemfile ${LAMBDA_TASK_ROOT}
+RUN gem install nokogiri
 RUN bundle install
 
 COPY lib ${LAMBDA_TASK_ROOT}
 COPY bin/flight-info.rb ${LAMBDA_TASK_ROOT}
-
-ENV GEM_HOME=/vendor
