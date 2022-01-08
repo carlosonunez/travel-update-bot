@@ -25,5 +25,10 @@ COPY Gemfile ${LAMBDA_TASK_ROOT}
 RUN gem install nokogiri
 RUN bundle install
 
-COPY lib ${LAMBDA_TASK_ROOT}
-COPY bin/flight-info.rb ${LAMBDA_TASK_ROOT}
+COPY lib ${LAMBDA_TASK_ROOT}/lib
+COPY vendor ${LAMBDA_TASK_ROOT}/vendor
+COPY bin ${LAMBDA_TASK_ROOT}/bin
+COPY spec ${LAMBDA_TASK_ROOT}/spec
+
+# Putting this here because I don't want to install nokogiri again...
+RUN amazon-linux-extras install docker
