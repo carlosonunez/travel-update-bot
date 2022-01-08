@@ -2,6 +2,8 @@ terraform {
   backend "s3" {}
 }
 
+provider "aws" {}
+
 provider "aws" {
   alias = "aws_acm_cert_region_for_edge"
   region = "us-east-1"
@@ -92,7 +94,7 @@ resource "aws_acm_certificate_validation" "app_cert" {
   provider = aws.aws_acm_cert_region_for_edge
   count = var.no_certs == "true" ? 0 : 1
   certificate_arn         = aws_acm_certificate.app_cert.0.arn
-  validation_record_fqdns = ["${aws_route53_record.app_cert_validation_cname.0.fqdn}"]
+  validation_record_fqdns = [aws_route53_record.app_cert_validation_cname.0.fqdn]
 }
 
 output "app_account_ak" {

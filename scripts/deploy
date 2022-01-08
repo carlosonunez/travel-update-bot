@@ -100,7 +100,7 @@ deploy_serverless_functions() {
 }
 
 remove_secret_folder_if_present() {
-  test -d "$(dirname "$0")/../secrets" && rm -rf "$(dirname "$0")/../secrets"
+  test -d "$(dirname "$0")/../secrets" && rm -rf "$(dirname "$0")/../secrets" || true
 }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]

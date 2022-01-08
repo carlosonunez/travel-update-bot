@@ -4,16 +4,18 @@ KEEP_ENV_UP="${KEEP_ENV_UP:-false}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 VENDOR_ANYWAY="${VENDOR_ANYWAY:-false}"
 NO_DEPLOY="${NO_DEPLOY:-false}"
+REBUILD_INTEGRATION_SERVICE="${REBUILD_INTEGRATION_SERVICE:-false}"
 set -e
 
 usage() {
   cat <<-USAGE
-$(basename $0)
+$(basename "$0")
 Stages our integration environment and runs our integration tests.
 
 ARGUMENTS
 
   -h, --help                        Prints this help screen.
+      --docker                      Runs Docker-local integration tests.
 
 ENVIRONMENT VARIABLES
 
@@ -30,7 +32,21 @@ ENVIRONMENT VARIABLES
 
   NO_DEPLOY=false                   Don't deploy anything; use what's available, if anything
 
+  REBUILD_INTEGRATION_SERVICE=false Rebuilds the "integration-docker" Docker service.
+                                    Only applicable when running with --docker flag.
+
 USAGE
+}
+
+# You might want to add a script that only triggers vendoring if specific changes
+# were found. To do that, add 'detect-changes.bash' to the 'helpers' directory.
+changes_detected() {
+  if test -f "$SCRIPT_DIR/helpers/detect-changes.bash"
+  then
+    "$SCRIPT_DIR/helpers/detect-changes.bash"
+  else
+    false
+  fi
 }
 
 vendor_dependencies() {
@@ -85,6 +101,19 @@ run_integration_tests() {
     docker-compose run --service-ports --rm integration
 }
 
+run_docker_local_integration_tests() {
+  info "Running Docker-local integration tests."
+  if grep -Eiq '^true$' <<< "$REBUILD_INTEGRATION_SERVICE" || changes_detected
+  then
+    info "App changes detected. Rebuilding integration Docker service."
+    docker-compose build integration-docker || exit 1
+  fi
+
+  SELENIUM_HOST="$(selenium_service)" \
+    SELENIUM_PORT=4444 \
+    docker-compose run --service-ports --rm integration-docker
+}
+
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
   usage
@@ -95,8 +124,13 @@ if [ "$DEPLOY_FUNCTIONS_ONLY" != "true" ]
 then
   vendor_dependencies
 fi
-update_app_in_integration_service &&
-deploy_to_integration &&
-setup
-run_integration_tests
-teardown
+if [ "$1" == "--docker" ]
+then
+  run_docker_local_integration_tests
+else
+  update_app_in_integration_service &&
+  setup &&
+  deploy_to_integration &&
+  run_integration_tests &&
+  teardown
+fi

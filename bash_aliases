@@ -2,6 +2,7 @@
 # commands available to you while testing the TripIt API.
 alias unit="scripts/unit"
 alias integration="scripts/integration"
+alias integration_docker="scripts/integration --docker"
 alias integration_no_destroy="KEEP_INTEGRATION_ENVIRONMENT_UP=true scripts/integration"
 alias integration_test="KEEP_INTEGRATION_ENVIRONMENT_UP=true NO_DEPLOY=true scripts/integration"
 alias integration_test_redeploy_too="KEEP_INTEGRATION_ENVIRONMENT_UP=true DEPLOY_FUNCTIONS_ONLY=true scripts/integration"

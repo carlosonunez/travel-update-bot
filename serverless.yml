@@ -7,11 +7,6 @@ service:
 
 frameworkVersion: '>=1.0.0'
 
-layers:
-  chromium:
-    package:
-      artifact: include/chromium.br
-
 provider:
   name: aws
   runtime: ruby2.7
@@ -24,6 +19,10 @@ provider:
     - default_key
   tracing:
     apiGateway: true
+  ecr:
+    images:
+      appImage:
+        path: .
 
 package:
   include:
@@ -71,8 +70,6 @@ functions:
     timeout: 30
     environment:
       GEM_PATH: vendor/bundle
-    layers:
-      - { Ref: ChromiumLambdaLayer }
     events:
       - http:
           path: flightInfo

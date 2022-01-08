@@ -29,8 +29,7 @@ vendor_dependencies() {
   fi
 }
 
-# To define "pre-unit" steps, create a script inside of 'helpers' called
-# "pre-unit.bash".
+# To define "pre-unit" steps, create a script inside of 'helpers' called # "pre-unit.bash".
 pre_unit_steps() {
   if test -f "$SCRIPT_DIR/helpers/pre-unit.bash"
   then

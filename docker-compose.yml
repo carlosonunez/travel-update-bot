@@ -57,12 +57,31 @@ services:
       - --fail-fast
       - --format
       - documentation
-  integration:
+  integration-docker:
     extends: ruby
-    entrypoint: rspec
+    entrypoint: vendor/bundle/bin/rspec
     env_file: .env
     environment:
-      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
+      LOAD_PATH: "spec/integration;spec;lib"
+      GEM_PATH: "vendor/bundle"
+      SELENIUM_HOST: "$SELENIUM_HOST"
+      SELENIUM_PORT: "$SELENIUM_PORT"
+    volumes:
+      - "$PWD/secrets:/secrets"
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --tag
+      - integration_docker
+      - --fail-fast
+      - --format
+      - documentation
+
+  integration:
+    extends: ruby
+    entrypoint: vendor/bundle/bin/rspec
+    env_file: .env
+    environment:
+      LOAD_PATH: "spec/integration;spec;lib"
       SELENIUM_HOST: "$SELENIUM_HOST"
       SELENIUM_PORT: "$SELENIUM_PORT"
     volumes:
