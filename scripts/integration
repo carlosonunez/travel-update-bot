@@ -4,7 +4,7 @@ KEEP_ENV_UP="${KEEP_ENV_UP:-false}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 VENDOR_ANYWAY="${VENDOR_ANYWAY:-false}"
 NO_DEPLOY="${NO_DEPLOY:-false}"
-REBUILD_INTEGRATION_SERVICE="${REBUILD_INTEGRATION_SERVICE:-false}"
+REBUILD="${REBUILD:-false}"
 set -e
 
 usage() {
@@ -32,7 +32,7 @@ ENVIRONMENT VARIABLES
 
   NO_DEPLOY=false                   Don't deploy anything; use what's available, if anything
 
-  REBUILD_INTEGRATION_SERVICE=false Rebuilds the "integration-docker" Docker service.
+  REBUILD=false                     Rebuilds the "integration-docker" Docker service.
                                     Only applicable when running with --docker flag.
 
 USAGE
@@ -103,7 +103,7 @@ run_integration_tests() {
 
 run_docker_local_integration_tests() {
   info "Running Docker-local integration tests."
-  if grep -Eiq '^true$' <<< "$REBUILD_INTEGRATION_SERVICE" || changes_detected
+  if grep -Eiq '^true$' <<< "$REBUILD" || changes_detected
   then
     info "App changes detected. Rebuilding integration Docker service."
     docker-compose build integration-docker || exit 1
