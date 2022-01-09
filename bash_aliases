@@ -1,6 +1,7 @@
 # source this file into your Bash or zsh session to make some common
 # commands available to you while testing the TripIt API.
 alias unit="scripts/unit"
+alias unit_docker="NO_VENDOR=true scripts/unit"
 alias integration="scripts/integration"
 alias integration_no_destroy="KEEP_INTEGRATION_ENVIRONMENT_UP=true scripts/integration"
 alias integration_test="KEEP_INTEGRATION_ENVIRONMENT_UP=true NO_DEPLOY=true scripts/integration"

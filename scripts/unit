@@ -3,6 +3,7 @@ SCRIPT_DIR="$(dirname "$0")"
 source "$SCRIPT_DIR/helpers/logging.sh"
 KEEP_ENV_UP="${KEEP_ENV_UP:-false}"
 FORCE_VENDOR="${FORCE_VENDOR:-false}"
+NO_VENDOR="${NO_VENDOR:-false}"
 REBUILD_UNIT_SERVICE="${REBUILD_UNIT_SERVICE:-false}"
 
 # You might want to add a script that only triggers vendoring if specific changes
@@ -18,6 +19,8 @@ changes_detected() {
 
 # TODO: Move vendoring stuff into separate helper library.
 vendor_dependencies() {
+  grep -Eiq '^true$' <<< "$FORCE_VENDOR" && return
+
   if ! test -d "./vendor" || grep -Eiq '^true$' <<< "$FORCE_VENDOR" || changes_detected
   then
     info "Updating app dependencies."

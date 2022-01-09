@@ -2,3 +2,4 @@ bash_aliases
 docker-compose.*
 *.tf
 scripts/
+.git

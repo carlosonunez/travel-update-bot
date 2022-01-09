@@ -50,6 +50,8 @@ changes_detected() {
 }
 
 vendor_dependencies() {
+  grep -Eiq '^true$' <<< "$FORCE_VENDOR" && return
+
   info "Updating app dependencies."
   if ! test -d "./vendor" || grep -Eiq '^true$' <<< "$VENDOR_ANYWAY"
   then
