@@ -36,10 +36,6 @@ services:
       args:
         ENVIRONMENT: test
     env_file: .env
-    entrypoint: sh
-    command:
-      - "-c"
-      - "not meant to be run with the stack"
 
   # You will need to vendor your dependencies first before running unit tests.
   # scripts/unit does this for you automatically.
@@ -47,7 +43,7 @@ services:
     extends: ruby
     entrypoint: vendor/bundle/bin/rspec
     environment:
-      LOAD_PATH: "spec/unit;spec;lib"
+      LOAD_PATH: "./spec/unit;./spec;./lib"
       GEM_PATH: "vendor/bundle"
     volumes:
       - /dev/null:/dev/shm
@@ -57,13 +53,19 @@ services:
       - --fail-fast
       - --format
       - documentation
+  integration-test-ping:
+    extends: ruby
+    ports:
+      - 8080
+    command:
+      - bin/flight-info.get_ping
   integration-docker:
     extends: ruby
     entrypoint: vendor/bundle/bin/rspec
     env_file: .env
     environment:
-      LOAD_PATH: "spec/integration;spec;lib"
       GEM_PATH: "vendor/bundle"
+      LOAD_PATH: "spec/integration;spec;lib"
       SELENIUM_HOST: "$SELENIUM_HOST"
       SELENIUM_PORT: "$SELENIUM_PORT"
     volumes:
