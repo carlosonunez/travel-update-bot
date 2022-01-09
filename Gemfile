@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'capybara'
+gem 'httparty'
 gem 'logger'
 gem 'nokogiri', '1.8.3'
 gem 'selenium-webdriver'
