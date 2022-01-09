@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-CHROMIUM_LAYER_VERSION="${CHROMIUM_LAYER_VERSION:-10.1.0}"
-CHROMIUM_LAYER_URI=https://github.com/alixaxel/chrome-aws-lambda/raw/v${CHROMIUM_LAYER_VERSION}/bin/chromium.br
 source $(dirname "$0")/helpers/shared_secrets.sh
 set -e
+DISABLE_API_GATEWAY_FETCH="${DISABLE_API_GATEWAY_FETCH:-false}"
 
 get_api_gateway_endpoint() {
+  grep -Eiq '^true$' <<< "$DISABLE_API_GATEWAY_FETCH" && return
+
   >&2 echo "INFO: Getting integration test API Gateway endpoint."
   remove_secret 'endpoint_name'
 
@@ -35,4 +36,12 @@ get_api_gateway_endpoint() {
   write_secret "$api_key" "api_key"
 }
 
+start_integration_test_services() {
+  while read -r svc
+  do
+    docker-compose up -d "$svc"
+  done < <(grep -E 'integration-test.*:' docker-compose.yml | sed 's/^ +//' | tr -d ':')
+}
+
 get_api_gateway_endpoint || true
+start_integration_test_services || true

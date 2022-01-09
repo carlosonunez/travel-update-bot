@@ -1,7 +1,8 @@
 require 'rspec'
 require 'json'
-require 'docker'
-Dir.glob('/app/spec/helpers/**/*.rb') do |file|
+require 'httparty'
+require_relative '../bin/flight-info'
+Dir.glob('./helpers/**/*.rb') do |file|
   require_relative file
 end
 

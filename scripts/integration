@@ -126,7 +126,9 @@ then
 fi
 if [ "$1" == "--docker" ]
 then
-  run_docker_local_integration_tests
+  DISABLE_API_GATEWAY_FETCH=true setup &&
+  run_docker_local_integration_tests &&
+  teardown
 else
   update_app_in_integration_service &&
   setup &&
