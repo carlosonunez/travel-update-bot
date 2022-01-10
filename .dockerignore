@@ -1,5 +1,6 @@
 bash_aliases
 docker-compose.*
+!docker-compose.yml
 *.tf
 scripts/
 .git

@@ -54,18 +54,18 @@ services:
       - documentation
   integration-test-ping:
     extends: ruby
-    ports:
-      - 8080
     command:
       - bin/flight-info.get_ping
+  integration-test-test_internet_access:
+    extends: ruby
+    command:
+      - bin/flight-info.test_internet_access
   integration-docker:
     extends: ruby
     entrypoint: rspec
     env_file: .env
     environment:
       LOAD_PATH: "spec/integration;spec;lib"
-      SELENIUM_HOST: "$SELENIUM_HOST"
-      SELENIUM_PORT: "$SELENIUM_PORT"
     volumes:
       - "$PWD/secrets:/secrets"
       - /var/run/docker.sock:/var/run/docker.sock

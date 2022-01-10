@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 source $(dirname "$0")/helpers/shared_secrets.sh
 set -e
+REBUILD="${REBUILD:-true}"
 DISABLE_API_GATEWAY_FETCH="${DISABLE_API_GATEWAY_FETCH:-false}"
 
 get_api_gateway_endpoint() {
@@ -39,6 +40,7 @@ get_api_gateway_endpoint() {
 start_integration_test_services() {
   while read -r svc
   do
+    grep -Eiq '^true$' <<< "$REBUILD" && docker-compose build "$svc"
     docker-compose up -d "$svc"
   done < <(grep -E 'integration-test.*:' docker-compose.yml | sed 's/^ +//' | tr -d ':')
 }
