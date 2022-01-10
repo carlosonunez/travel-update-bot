@@ -16,13 +16,13 @@ provider:
     name: ${env:SERVERLESS_BUCKET_NAME}
   deploymentPrefix: serverless
   apiKeys:
-    - default_key
+    - default_key_${env:ENVIRONMENT}
   tracing:
     apiGateway: true
   ecr:
     images:
-      appImage:
-        path: .
+      app:
+        uri: ${file(./secrets/ecr_repository)}/${env:TF_VAR_app_name}:app-${self.custom.architecture}
 
 package:
   include:
@@ -41,35 +41,31 @@ package:
 
 functions:
   ping:
-    handler: bin/flight-info.get_ping
-    description: Tests that flight info bot is up and running.
-    timeout: 30
-    environment:
-      GEM_PATH: vendor/bundle
+    memorySize: 128
+    image:
+      name: app
+      command: bin/flight-info.get_ping
     events:
       - http:
           path: ping
           method: get
   test_internet_access:
-    handler: bin/flight-info.test_internet_access
-    description: Test whether our app can access the Internet.
+    memorySize: 512
     timeout: 30
-    stage: develop
-    environment:
-      GEM_PATH: vendor/bundle
-    layers:
-      - { Ref: ChromiumLambdaLayer }
+    image:
+      name: app
+      command: bin/flight-info.test_internet_access
     events:
       - http:
           path: testInternetAccess
           method: get
           private: true
   flight_info:
-    handler: bin/flight-info.get_flight_info
-    description: Gets flight information when given a flight number.
     timeout: 30
-    environment:
-      GEM_PATH: vendor/bundle
+    memorySize: 512
+    image:
+      name: app
+      command: bin/flight-info.get_flight_info
     events:
       - http:
           path: flightInfo
@@ -77,9 +73,14 @@ functions:
           private: true
 
 custom:
+  architecture: arm64
+  enableCustomDomain:
+    develop: false
+    v1: true
   customDomain:
     stage: v1
     domainName: ${env:DOMAIN_PATH}.${env:DOMAIN_TLD}
     certificateArn: ${file(./secrets/certificate_arn)}
     basePath: 'v1'
     createRoute53Record: true
+    enabled: ${self:custom.enableCustomDomain.${opt:stage, self:provider.stage}}

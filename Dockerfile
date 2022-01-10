@@ -17,7 +17,7 @@ RUN bundle install
 
 RUN gem install aws_lambda_ric
 RUN apk add curl
-RUN if uname -m | grep -Ei 'arm|aarch'; \
+RUN if uname -m | grep -Eiq 'arm|aarch'; \
     then curl -Lo /usr/local/bin/aws_lambda_rie "$AWS_LAMBDA_RIE_URL_ARM64"; \
     else curl -Lo /usr/local/bin/aws_lambda_rie "$AWS_LAMBDA_RIE_URL_AMD64"; \
     fi && chmod +x /usr/local/bin/aws_lambda_rie
@@ -25,5 +25,6 @@ RUN if uname -m | grep -Ei 'arm|aarch'; \
 COPY bin /app/bin
 COPY lib /app/lib
 COPY spec /app/spec
+COPY include/entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT [ "/usr/local/bin/aws_lambda_rie", "aws_lambda_ric" ]
+ENTRYPOINT [ "/entrypoint.sh" ]

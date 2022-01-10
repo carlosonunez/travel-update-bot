@@ -8,7 +8,6 @@ get_api_gateway_endpoint() {
   grep -Eiq '^true$' <<< "$DISABLE_API_GATEWAY_FETCH" && return
 
   >&2 echo "INFO: Getting integration test API Gateway endpoint."
-  remove_secret 'endpoint_name'
 
   endpoint_url=$(docker-compose -f docker-compose.deploy.yml run --rm serverless info --stage develop | \
     grep -E 'http.*\/ping' | \
@@ -38,6 +37,8 @@ get_api_gateway_endpoint() {
 }
 
 start_integration_test_services() {
+  grep -Eiq '^false$' <<< "$DISABLE_API_GATEWAY_FETCH" && return
+
   while read -r svc
   do
     grep -Eiq '^true$' <<< "$REBUILD" && docker-compose build "$svc"

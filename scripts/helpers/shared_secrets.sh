@@ -28,3 +28,7 @@ write_secret() {
   secret_filepath="./secrets/$secret_filename"
   printf "$secret" > "$secret_filepath"
 }
+
+read_secret() {
+  cat "./secrets/$1"
+}

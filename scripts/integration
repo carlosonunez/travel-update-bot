@@ -5,6 +5,7 @@ DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 VENDOR_ANYWAY="${VENDOR_ANYWAY:-false}"
 NO_DEPLOY="${NO_DEPLOY:-false}"
 export REBUILD="${REBUILD:-false}"
+
 set -e
 
 usage() {
@@ -92,7 +93,7 @@ teardown() {
     info "Integration environment will stay up as requested. \
 Tear it down by running: docker-compose run --rm integration-teardown."
   else
-    scripts/integration_teardown
+    scripts/integration_teardown.sh
   fi
 }
 
@@ -130,11 +131,11 @@ if [ "$1" == "--docker" ]
 then
   DISABLE_API_GATEWAY_FETCH=true setup &&
   run_docker_local_integration_tests
-  grep -Eiq '^true' <<< "$KEEP_ENV_UP" || teardown
+  teardown
 else
   update_app_in_integration_service &&
   setup &&
   deploy_to_integration &&
-  run_integration_tests &&
+  run_integration_tests
   teardown
 fi

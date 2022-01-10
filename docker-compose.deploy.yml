@@ -5,6 +5,8 @@ services:
       dockerfile: serverless.Dockerfile
       context: .
     env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - ENVIRONMENT=test
       - SLS_WARNING_DISABLE=1

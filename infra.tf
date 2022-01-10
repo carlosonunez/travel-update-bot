@@ -97,6 +97,12 @@ resource "aws_acm_certificate_validation" "app_cert" {
   validation_record_fqdns = [aws_route53_record.app_cert_validation_cname.0.fqdn]
 }
 
+resource "aws_ecr_repository" "app" {
+  name = var.app_name
+}
+
+data "aws_ecr_authorization_token" "default" {}
+
 output "app_account_ak" {
   value = aws_iam_access_key.app.id
 }
@@ -107,4 +113,12 @@ output "app_account_sk" {
 
 output "certificate_arn" {
   value = var.no_certs == "true" ? "none" : aws_acm_certificate.app_cert.0.arn
+}
+
+output "ecr_repository" {
+  value = aws_ecr_repository.app.repository_url
+}
+
+output "ecr_repository_password" {
+  value = data.aws_ecr_authorization_token.default.password
 }
