@@ -6,6 +6,11 @@ require 'timeout'
 require 'time'
 
 module FlightInfo
+  CHROMIUM_ARGS = %w[headless
+                     enable-features=NetworkService,NetworkServiceInProcess
+                     no-sandbox
+                     disable-dev-shm-usage
+                     disable-gpu]
   def self.ping
     {
       statusCode: 200,
@@ -151,11 +156,7 @@ arrival time."
     Capybara.register_driver :headless_chrome do |app|
       caps = ::Selenium::WebDriver::Remote::Capabilities.chrome(
         "goog:chromeOptions": {
-          args: %w[headless
-                   enable-features=NetworkService,NetworkServiceInProcess
-                   no-sandbox
-                   disable-dev-shm-usage
-                   disable-gpu]
+          args: CHROMIUM_ARGS
         }
       )
 

@@ -28,14 +28,15 @@ USAGE
 }
 
 
-write_lambda_secrets_for_integration_testing() {
-  if test "$ENVIRONMENT" != "test"
-  then
-    return
+write_lambda_secrets() {
+  stage="develop"
+  if test "$ENVIRONMENT" == "production" ||
+    test "$ENVIRONMENT" == "prod"
+  then stage="v1"
   fi
   info "Getting integration test API Gateway endpoint."
   endpoint_url=$(docker-compose -f docker-compose.deploy.yml run \
-      --rm serverless info --stage develop | \
+      --rm serverless info --stage "$stage" | \
     grep -E 'http.*\/ping' | \
     sed 's/.*\(http.*\)\/ping/\1/' | \
     tr -d $'\r' | \
@@ -43,7 +44,7 @@ write_lambda_secrets_for_integration_testing() {
 
   info "Getting API Gateway default API key."
   api_key=$(docker-compose -f docker-compose.deploy.yml \
-      run --rm serverless info --stage develop | \
+      run --rm serverless info --stage "$stage" | \
     grep -E 'default_key_test:' | \
     sed 's/.*default_key_test: //' | \
     tr -d $'\r' | \
@@ -77,23 +78,24 @@ write_infrastructure_secrets() {
       sed "s/^$output_var = //")
     if test -z "$secret_value"
     then
-      error "Unable to resolve secret: $output_var"
+      error "===> ${output_var}: retrieval failed"
       exit 1
     fi
-    info "===> ${output_var}: $secret_value"
+    info "===> ${output_var}: retrieved"
     write_secret "$secret_value" "$output_var"
   done
 }
 
 push_app_to_ecr() {
-  docker login "$(read_secret "ecr_repository")" --username AWS --password \
+  repository="$(read_secret "ecr_repository")"
+  docker login "$repository" --username AWS --password \
     "$(read_secret "ecr_repository_password")" || return 1
 
   for arch in amd64 arm64
   do
-    image_name="$(read_secret "ecr_repository"):app-$arch"
+    image_name="$repository:app-$arch"
     if grep -Eiq '^true$' <<< "$REPUSH" ||
-      ! test -z "$(docker images "$image_name")"
+      test -z "$(docker images "$repository")"
     then
       docker build --platform="linux/$arch" --no-cache --pull \
         -t "$image_name" . && docker push "$image_name"
@@ -116,7 +118,7 @@ deploy_serverless_functions() {
   info "Deploying serverless functions."
   docker-compose -f docker-compose.deploy.yml build deploy-serverless-functions-"$ENVIRONMENT" &&
   docker-compose -f docker-compose.deploy.yml run --rm deploy-serverless-functions-"$ENVIRONMENT" &&
-    write_lambda_secrets_for_integration_testing
+    write_lambda_secrets
 }
 
 remove_secret_folder_if_present() {

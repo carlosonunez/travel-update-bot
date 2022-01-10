@@ -22,7 +22,7 @@ provider:
   ecr:
     images:
       app:
-        uri: ${file(./secrets/ecr_repository)}/${env:TF_VAR_app_name}:app-${self.custom.architecture}
+        uri: ${file(./secrets/ecr_repository)}:app-${self:custom.architecture}
 
 package:
   include:
@@ -49,8 +49,17 @@ functions:
       - http:
           path: ping
           method: get
+  chromium_ping:
+    memorySize: 128
+    image:
+      name: app
+      command: bin/flight-info.test_chromium_launch
+    events:
+      - http:
+          path: debugChromium
+          method: get
   test_internet_access:
-    memorySize: 512
+    memorySize: 1024
     timeout: 30
     image:
       name: app
@@ -73,7 +82,7 @@ functions:
           private: true
 
 custom:
-  architecture: arm64
+  architecture: amd64
   enableCustomDomain:
     develop: false
     v1: true

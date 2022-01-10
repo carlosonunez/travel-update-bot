@@ -60,18 +60,47 @@ services:
     extends: ruby
     command:
       - bin/flight-info.test_internet_access
+  # Chrome is crashing within the container running inside of Lambda.
+  # Need to get its output to see what's going on.
+  integration-test-test_chromium_launch:
+    extends: ruby
+    command:
+      - bin/flight-info.test_chromium_launch
+  # Why do we need this?
+  #
+  # PhantomJS stopped rendering FlightAware sometime in 2020. Consequently, we now
+  # have to use Chromium to scrape it.
+  #
+  # Unfortunately, fitting Chromium inside of a Lambda layer is challenging, and even if you manage
+  # to get it to fit (and writing your own JIT decompression routine since you'll likely use
+  # Brotli like the chrome-lambda Node project is doing), testing it locally is tough unless
+  # you're using the lambci/lambda Docker image (which only works for x86_64 architectures...
+  # more on that later).
+  #
+  # Fortunately, Lambda can now spawn Docker containers from OCI-compliant images in ECR. This
+  # is a god-send for local testing, as you can now execute your code in the same environment
+  # as what it will run in on the real thing. However, executing functions through the
+  # Lambda Interface Emulator is not as straightforward as running them through ruby since
+  # you're actually executing them like Lambda functions (i.e. through a handler invoked via HTTP).
+  #
+  # This series of tests confirms that:
+  #
+  # - The RIE and its requisite client are set up correctly, and
+  # - That Selenium can talk to the instance of Chromium that's installed in our base image
+  #   through the RIE.
   integration-docker:
     extends: ruby
     entrypoint: rspec
     env_file: .env
     environment:
       LOAD_PATH: "spec/integration;spec;lib"
+      USE_LOCAL_LAMBDA: "true"
     volumes:
       - "$PWD/secrets:/secrets"
       - /var/run/docker.sock:/var/run/docker.sock
     command:
       - --tag
-      - integration_docker
+      - integration
       - --fail-fast
       - --format
       - documentation
