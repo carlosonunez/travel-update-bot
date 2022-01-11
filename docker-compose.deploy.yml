@@ -110,6 +110,7 @@ services:
     extends: serverless
     environment:
       ENVIRONMENT: "production"
+      TF_VAR_environment: "production"
     command:
       - remove
       - --stage

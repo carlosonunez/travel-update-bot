@@ -9,6 +9,8 @@ provider "aws" {
   region = "us-east-1"
 }
 
+data "aws_region" "current" {}
+
 variable "serverless_bucket_name" {
   description = "The bucket into which Serverless will deploy the app."
 }
