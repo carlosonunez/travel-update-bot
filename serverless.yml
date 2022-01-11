@@ -10,6 +10,7 @@ frameworkVersion: '>=1.0.0'
 provider:
   name: aws
   runtime: ruby2.7
+  architecture: "${self:custom.architecture}"
   region: ${env:AWS_REGION, 'us-east-2'}
   memorySize: 1024
   deploymentBucket:
@@ -22,7 +23,7 @@ provider:
   ecr:
     images:
       app:
-        uri: ${file(./secrets/ecr_repository)}:app-${self:custom.architecture}
+        path: .
 
 package:
   include:
@@ -51,6 +52,7 @@ functions:
           method: get
   chromium_ping:
     memorySize: 128
+    timeout: 30
     image:
       name: app
       command: bin/flight-info.test_chromium_launch
@@ -82,7 +84,7 @@ functions:
           private: true
 
 custom:
-  architecture: amd64
+  architecture: arm64
   enableCustomDomain:
     develop: false
     v1: true

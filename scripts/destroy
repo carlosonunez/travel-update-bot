@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+ENVIRONMENT="${ENVIRONMENT:-test}"
+DOCKER_COMPOSE="docker-compose -f docker-compose.deploy.yml"
+FUNCTIONS_ONLY="${FUNCTIONS_ONLY:-false}"
+INFRA_ONLY="${INFRA_ONLY:-false}"
+
+destroy_functions() {
+  grep -Eiq '^true$' <<< "$INFRA_ONLY" && return 0
+
+  $DOCKER_COMPOSE run --rm destroy-serverless-functions-"$ENVIRONMENT"
+}
+
+destroy_infra() {
+  grep -Eiq '^true$' <<< "$FUNCTIONS_ONLY" && return 0
+
+  $DOCKER_COMPOSE run --rm -e TF_VAR_aws_ecr_enable=false destroy-serverless-infra-"$ENVIRONMENT"
+}
+
+destroy_functions; destroy_infra

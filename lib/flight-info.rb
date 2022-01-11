@@ -165,6 +165,7 @@ arrival time."
                                      capabilities: caps)
     end
 
+    Selenium::WebDriver.logger.level = :debug
     Capybara.default_driver = :headless_chrome
     Capybara.javascript_driver = :headless_chrome
     Capybara::Session.new :headless_chrome

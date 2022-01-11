@@ -1,14 +1,10 @@
-FROM ruby:2.7-alpine3.15
+FROM ruby:2.7-buster
 MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 ENV AWS_LAMBDA_RIE_URL_ARM64=https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie-arm64
 ENV AWS_LAMBDA_RIE_URL_AMD64=https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie
 
-RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
-    apk update
-
-RUN apk add libffi-dev readline sqlite build-base\
-    libc-dev linux-headers libxml2-dev libxslt-dev readline-dev gcc libc-dev \
-    freetype fontconfig gcompat chromium@testing chromium-chromedriver@testing
+RUN apt -y update
+RUN apt -y install zlib1g-dev liblzma-dev patch chromium chromium-driver
 
 RUN mkdir /app
 COPY Gemfile /app
@@ -16,7 +12,6 @@ WORKDIR /app
 RUN bundle install
 
 RUN gem install aws_lambda_ric
-RUN apk add curl
 RUN if uname -m | grep -Eiq 'arm|aarch'; \
     then curl -Lo /usr/local/bin/aws_lambda_rie "$AWS_LAMBDA_RIE_URL_ARM64"; \
     else curl -Lo /usr/local/bin/aws_lambda_rie "$AWS_LAMBDA_RIE_URL_AMD64"; \
