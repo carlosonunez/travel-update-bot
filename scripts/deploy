@@ -3,7 +3,8 @@ source $(dirname "$0")/helpers/shared_secrets.sh
 source $(dirname "$0")/helpers/logging.sh
 ENVIRONMENT="${ENVIRONMENT:-test}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
-REPUSH="${REPUSH:-false}"
+AWS_ECR_ENABLE="${AWS_ECR_ENABLE:-false}"
+AWS_ECR_REPUSH="${AWS_ECR_REPUSH:-false}"
 set -e
 
 usage() {
@@ -22,7 +23,30 @@ ENVIRONMENT VARIABLES
   DEPLOY_FUNCTIONS_ONLY=false   Disable re-deploying infrastructure and skip
                                 straight to deploying functions.
 
-  REPUSH                        Re-push Docker images into AWS ECR.
+  AWS_ECR_ENABLE                Enable building dual-architecture Docker images
+                                into AWS ECR.
+
+  AWS_ECR_REPUSH                Re-push Docker images into AWS ECR.
+                                No effect if AWS_ECR_ENABLE=false.
+
+NOTES
+
+  - If setting AWS_ECR_ENABLE=true, also make sure that your "provider" block
+    inside of "serverless.yml" looks like this:
+
+    provider:
+      name: aws
+      runtime: # Your runtime
+      ...
+      ecr:
+        images:
+          app:
+            uri: \${file(./secrets/ecr_repository)}:app-\${self:custom.architecture}
+
+    And that you have a "custom" block that looks like this:
+
+    custom:
+      architecture: arm64 # or amd64
 
 USAGE
 }
@@ -87,6 +111,8 @@ write_infrastructure_secrets() {
 }
 
 push_app_to_ecr() {
+  grep -Eiq '^true$' <<< "$AWS_ECR_ENABLE"  || return 0
+
   repository="$(read_secret "ecr_repository")"
   docker login "$repository" --username AWS --password \
     "$(read_secret "ecr_repository_password")" || return 1
@@ -94,7 +120,7 @@ push_app_to_ecr() {
   for arch in amd64 arm64
   do
     image_name="$repository:app-$arch"
-    if grep -Eiq '^true$' <<< "$REPUSH" ||
+    if grep -Eiq '^true$' <<< "$AWS_ECR_REPUSH" ||
       test -z "$(docker images "$repository")"
     then
       docker build --platform="linux/$arch" --no-cache --pull \
@@ -105,7 +131,9 @@ push_app_to_ecr() {
 
 deploy_serverless_infrastructure() {
   info "Deploying serverless infrastructure."
-  docker-compose -f docker-compose.deploy.yml run --rm deploy-serverless-infra-"$ENVIRONMENT" &&
+  docker-compose -f docker-compose.deploy.yml run --rm \
+    -e TF_VAR_aws_ecr_enable="${AWS_ECR_ENABLE}" \
+    deploy-serverless-infra-"$ENVIRONMENT" &&
   if test "$ENVIRONMENT" == "production"
   then
     docker-compose -f docker-compose.deploy.yml build deploy-serverless-domain-production &&

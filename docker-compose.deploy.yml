@@ -81,3 +81,36 @@ services:
       - deploy
       - --stage
       - develop
+  destroy-serverless-infra-test:
+    extends: terraform
+    environment:
+      TF_VAR_no_certs: "true"
+      TF_VAR_environment: "test"
+    command:
+      - destroy
+      - --auto-approve=true
+      - --input=false
+  destroy-serverless-functions-test:
+    extends: serverless
+    environment:
+      ENVIRONMENT: "test"
+    command:
+      - remove
+      - --stage
+      - develop
+  destroy-serverless-infra-production:
+    extends: terraform
+    environment:
+      TF_VAR_environment: "production"
+    command:
+      - destroy
+      - --auto-approve=true
+      - --input=false
+  destroy-serverless-functions-production:
+    extends: serverless
+    environment:
+      ENVIRONMENT: "production"
+    command:
+      - remove
+      - --stage
+      - v1
