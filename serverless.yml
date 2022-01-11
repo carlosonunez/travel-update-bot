@@ -13,7 +13,7 @@ provider:
   architecture: "${self:custom.architecture}"
   region: ${env:AWS_REGION, 'us-east-2'}
   deploymentBucket:
-    name: ${env:SERVERLESS_BUCKET_NAME}
+    name: ${env:SERVERLESS_BUCKET_NAME}-${env:ENVIRONMENT}
   deploymentPrefix: serverless
   apiKeys:
     - default_key_${env:ENVIRONMENT}
@@ -73,7 +73,7 @@ functions:
           private: true
   flight_info:
     timeout: 30
-    memorySize: 512
+    memorySize: 2048
     image:
       name: app
       command: bin/flight-info.get_flight_info
