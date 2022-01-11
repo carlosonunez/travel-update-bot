@@ -55,10 +55,10 @@ describe 'Flight info' do
           origin_city: 'New York, NY',
           destination: 'LAX',
           destination_city: 'Los Angeles, CA',
-          departure_time: '2019-10-27 07:53 EDT',
-          est_takeoff_time: '2019-10-27 08:17 EDT',
-          est_landing_time: '2019-10-27 11:11 PDT',
-          arrival_time: '2019-10-27 11:18 PDT'
+          departure_time: '2022-01-11 07:27 EST',
+          est_takeoff_time: '2022-01-11 07:48 EST',
+          est_landing_time: '2022-01-11 10:16 PST',
+          arrival_time: '2022-01-11 10:34 PST'
         }.to_json
       }
       actual_json = get_flight_info(event: fake_event)
@@ -76,14 +76,14 @@ describe 'Flight info' do
         statusCode: 200,
         body: {
           flight_number: 'AAL356',
-          origin: 'OMA',
-          origin_city: 'Omaha, NE',
+          origin: 'PHX',
+          origin_city: 'Phoenix, AZ',
           destination: 'DFW',
           destination_city: 'Dallas-Fort Worth, TX',
-          departure_time: '2019-11-07 20:23 CST',
-          est_takeoff_time: '2019-11-07 20:23 CST',
-          est_landing_time: '2019-11-07 22:20 CST',
-          arrival_time: '2019-11-07 22:20 CST'
+          departure_time: '2022-01-11 08:13 MST',
+          est_takeoff_time: '2022-01-11 08:29 MST',
+          est_landing_time: '2022-01-11 11:14 CST',
+          arrival_time: '2022-01-11 11:28 CST'
         }.to_json
       }
       actual_json = get_flight_info(event: fake_event)

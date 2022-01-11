@@ -7,10 +7,31 @@ require 'time'
 
 module FlightInfo
   CHROMIUM_ARGS = %w[headless
-                     enable-features=NetworkService,NetworkServiceInProcess
-                     no-sandbox
+                     allow-running-insecure-content
+                     autoplay-policy=user-gesture-required
+                     disable-component-update
                      disable-dev-shm-usage
-                     disable-gpu]
+                     disable-domain-reliability
+                     disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process
+                     disable-gpu
+                     disable-print-preview
+                     disable-setuid-sandbox
+                     disable-site-isolation-trials
+                     disable-speech-api
+                     disable-web-security
+                     disk-cache-size=33554432
+                     enable-features=SharedArrayBuffer
+                     hide-scrollbars
+                     ignore-gpu-blocklist
+                     in-process-gpu
+                     mute-audio
+                     no-default-browser-check
+                     no-pings
+                     no-sandbox
+                     no-zygote
+                     single-process
+                     use-gl=swiftshader
+                     window-size=1920,1080]
   def self.ping
     {
       statusCode: 200,
@@ -165,7 +186,6 @@ arrival time."
                                      capabilities: caps)
     end
 
-    Selenium::WebDriver.logger.level = :debug
     Capybara.default_driver = :headless_chrome
     Capybara.javascript_driver = :headless_chrome
     Capybara::Session.new :headless_chrome
@@ -184,7 +204,7 @@ arrival time."
 
     Timeout.timeout(30) do
       loop do
-        break unless session.find_all('.flightPageHeading').empty?
+        break unless session.find_all('.flightPageSummaryMap').empty?
 
         sleep 0.5
       end
