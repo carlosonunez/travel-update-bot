@@ -1,5 +1,5 @@
 ---
-name: Nightly TripIt API Integration Tests
+name: Nightly Integration Tests
 on:
   schedule:
     - cron: "0 21 * * */1"
