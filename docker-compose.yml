@@ -60,12 +60,10 @@ services:
     extends: ruby
     command:
       - bin/flight-info.test_internet_access
-  # Chrome is crashing within the container running inside of Lambda.
-  # Need to get its output to see what's going on.
-  integration-test-test_chromium_launch:
+  integration-test-test_flight_info:
     extends: ruby
     command:
-      - bin/flight-info.test_chromium_launch
+      - bin/flight-info.get_flight_info
   # Why do we need this?
   #
   # PhantomJS stopped rendering FlightAware sometime in 2020. Consequently, we now

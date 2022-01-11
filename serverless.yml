@@ -12,7 +12,6 @@ provider:
   runtime: ruby2.7
   architecture: "${self:custom.architecture}"
   region: ${env:AWS_REGION, 'us-east-2'}
-  memorySize: 1024
   deploymentBucket:
     name: ${env:SERVERLESS_BUCKET_NAME}
   deploymentPrefix: serverless
@@ -51,7 +50,7 @@ functions:
           path: ping
           method: get
   chromium_ping:
-    memorySize: 128
+    memorySize: 512
     timeout: 30
     image:
       name: app
@@ -60,8 +59,9 @@ functions:
       - http:
           path: debugChromium
           method: get
+          private: true
   test_internet_access:
-    memorySize: 1024
+    memorySize: 512
     timeout: 30
     image:
       name: app

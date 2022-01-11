@@ -9,10 +9,7 @@ def test_chromium_launch(event: {}, context: {})
   args = FlightInfo::CHROMIUM_ARGS.map { |arg| arg.prepend('--') }
                                   .map { |arg| arg.gsub('----', '--') }
                                   .join(' ')
-  args += ' --remote-debugging-port=9222 --disable-software-rasterizer'
-  args += ' --diasable-gpu-process-prelaunch --disable-gpu-sandbox'
-  args += ' -v=99'
-  output = `2>&1 timeout 25 chromium #{args}`
+  output = `2>&1 chromium #{args} https://flightaware.com`
   rc = $CHILD_STATUS
   { statusCode: 200, body: { message: "rc: #{rc}, opts: #{args}, output: #{output}" }.to_json }
 end
