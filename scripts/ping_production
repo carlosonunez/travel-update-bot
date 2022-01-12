@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+toplevel=$(grep DOMAIN_PATH .env | cut -f2 -d =)
+domain=$(grep DOMAIN_TLD .env | cut -f2 -d =)
+code=$(curl -o /dev/null -s -w '%{http_code}' "https://${toplevel}.${domain}/v1/ping")
+[ "$code" == "200" ]
