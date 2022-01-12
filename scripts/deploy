@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 source $(dirname "$0")/helpers/shared_secrets.sh
 source $(dirname "$0")/helpers/logging.sh
+source $(dirname "$0")/helpers/aws.sh
 if test -f "$(dirname "$0")/../.env"
 then
   export $(grep -Ev '^#' "$(dirname "$0")/../.env" | xargs -0)
@@ -15,7 +16,6 @@ ENVIRONMENT="${ENVIRONMENT:-test}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 AWS_ECR_ENABLE="${AWS_ECR_ENABLE:-false}"
 AWS_ECR_REPUSH="${AWS_ECR_REPUSH:-false}"
-AWS_CREDS_TEMP_FP="$(mktemp $PWD/aws-session-credentials-"$(date +%s)"-XXXXX)"
 set -e
 
 usage() {
@@ -141,9 +141,7 @@ push_app_to_ecr() {
 }
 
 deploy_serverless_infrastructure() {
-  set -x
   export $(get_aws_credentials)
-  set +x
   info "Deploying serverless infrastructure."
   docker-compose -f docker-compose.deploy.yml run --rm \
     -e TF_VAR_aws_ecr_enable="${AWS_ECR_ENABLE}" \
@@ -166,22 +164,6 @@ deploy_serverless_functions() {
 
 remove_secret_folder_if_present() {
   test -d "$(dirname "$0")/../secrets" && rm -rf "$(dirname "$0")/../secrets" || true
-}
-
-generate_aws_credentials() {
-  info "Retrieving an AWS session token"
-  printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s" \
-    $(docker-compose -f docker-compose.deploy.yml run -T --rm obtain-aws-session-credentials) \
-    >> "$AWS_CREDS_TEMP_FP"
-}
-
-remove_aws_credentials() {
-  info "Removing AWS credentials"
-  rm -f "$AWS_CREDS_TEMP_FP"
-}
-
-get_aws_credentials() {
-  cat "$AWS_CREDS_TEMP_FP"
 }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]

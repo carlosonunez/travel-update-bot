@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 source $(dirname "$0")/helpers/logging.sh
+source $(dirname "$0")/helpers/aws.sh
 ENVIRONMENT="${ENVIRONMENT:-test}"
 DOCKER_COMPOSE="docker-compose -f docker-compose.deploy.yml"
 FUNCTIONS_ONLY="${FUNCTIONS_ONLY:-false}"
@@ -14,23 +15,6 @@ AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY?Please define AWS_SECRET_ACCESS_K
 AWS_REGION="${AWS_REGION?Please define AWS_REGION}"
 AWS_ROLE_ARN="${AWS_ROLE_ARN?Please define AWS_ROLE_ARN}"
 AWS_STS_EXTERNAL_ID="${AWS_STS_EXTERNAL_ID?Please define AWS_STS_EXTERNAL_ID}"
-AWS_CREDS_TEMP_FP="$(mktemp /tmp/aws-session-credentials-"$(date +%s)"-XXXXX)"
-
-generate_aws_credentials() {
-  info "Retrieving an AWS session token"
-  printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s" \
-    $(docker-compose -f docker-compose.deploy.yml run -T --rm obtain-aws-session-credentials) \
-    >> "$AWS_CREDS_TEMP_FP"
-}
-
-remove_aws_credentials() {
-  rm -f "$AWS_CREDS_TEMP_FP"
-}
-
-get_aws_credentials() {
-  info "Removing AWS credentials"
-  cat "$AWS_CREDS_TEMP_FP"
-}
 
 destroy_functions() {
   grep -Eiq '^true$' <<< "$INFRA_ONLY" && return 0
