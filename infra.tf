@@ -47,6 +47,7 @@ data "aws_route53_zone" "app_dns_zone" {
 
 resource "aws_s3_bucket" "serverless_bucket" {
   bucket = "${var.serverless_bucket_name}-${var.environment}"
+  force_destroy = true
 }
 
 resource "aws_iam_user" "app" {
