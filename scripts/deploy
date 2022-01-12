@@ -141,7 +141,9 @@ push_app_to_ecr() {
 }
 
 deploy_serverless_infrastructure() {
+  set -x
   export $(get_aws_credentials)
+  set +x
   info "Deploying serverless infrastructure."
   docker-compose -f docker-compose.deploy.yml run --rm \
     -e TF_VAR_aws_ecr_enable="${AWS_ECR_ENABLE}" \
