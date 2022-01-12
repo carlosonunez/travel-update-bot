@@ -19,7 +19,10 @@ changes_detected() {
 
 # TODO: Move vendoring stuff into separate helper library.
 vendor_dependencies() {
-  grep -Eiq '^true$' <<< "$FORCE_VENDOR" && return
+  if grep -Eiq '^true$' <<< "$NO_VENDOR"
+  then
+    warn "Vendoring skipped"
+  fi
 
   if ! test -d "./vendor" || grep -Eiq '^true$' <<< "$FORCE_VENDOR" || changes_detected
   then

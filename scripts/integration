@@ -4,6 +4,7 @@ KEEP_ENV_UP="${KEEP_ENV_UP:-false}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 VENDOR_ANYWAY="${VENDOR_ANYWAY:-false}"
 NO_DEPLOY="${NO_DEPLOY:-false}"
+NO_VENDOR="${NO_VENDOR:-false}"
 export REBUILD="${REBUILD:-false}"
 
 set -e
@@ -36,6 +37,9 @@ ENVIRONMENT VARIABLES
   REBUILD=false                     Rebuilds the "integration-docker" Docker service.
                                     Only applicable when running with --docker flag.
 
+  NO_VENDOR=false                   Skip vendoring dependencies.
+                                    Useful if you are running your function in a Lambda container.
+
 USAGE
 }
 
@@ -51,7 +55,7 @@ changes_detected() {
 }
 
 vendor_dependencies() {
-  grep -Eiq '^true$' <<< "$FORCE_VENDOR" && return
+  grep -Eiq '^true$' <<< "$NO_VENDOR" && return
 
   info "Updating app dependencies."
   if ! test -d "./vendor" || grep -Eiq '^true$' <<< "$VENDOR_ANYWAY"

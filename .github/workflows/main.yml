@@ -24,6 +24,8 @@ jobs:
 
       - name: Run unit tests
         run: ./scripts/unit
+        env:
+          NO_VENDOR: 'true'
 
   integration_tests:
     needs: [unit_tests]
@@ -44,6 +46,8 @@ jobs:
 
       - name: Run integration tests
         run: ./scripts/integration
+        env:
+          NO_VENDOR: 'true'
 
       - name: Destroy integration environment
         run: ./scripts/destroy
@@ -67,6 +71,8 @@ jobs:
 
       - name: Deploy to Production
         run: ENVIRONMENT=production ./scripts/deploy
+        env:
+          NO_VENDOR: 'true'
 
       - name: Run smoke test
         run: ./scripts/ping_production
