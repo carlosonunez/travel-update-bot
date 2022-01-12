@@ -22,6 +22,7 @@ provider:
   ecr:
     images:
       app:
+        platform: "${self:custom.architecture}"
         path: .
 
 package:
