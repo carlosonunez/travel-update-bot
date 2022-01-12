@@ -102,10 +102,16 @@ Tear it down by running: docker-compose run --rm integration-teardown."
 }
 
 run_integration_tests() {
-  info "Running integration tests."
-  SELENIUM_HOST="$(selenium_service)" \
-    SELENIUM_PORT=4444 \
-    docker-compose run --service-ports --rm integration
+  attempts=1
+  while test "$attempts" -le 5
+  do
+    info "Running integration tests (attempt $attempts/5)"
+    SELENIUM_HOST="$(selenium_service)" \
+      SELENIUM_PORT=4444 \
+      docker-compose run --service-ports --rm integration && return
+    attempts=$((attempts+1))
+  done
+  error "Integration tests failed after five attempts"
 }
 
 run_docker_local_integration_tests() {
