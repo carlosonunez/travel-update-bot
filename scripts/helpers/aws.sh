@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-AWS_CREDS_TEMP_FP="$(mktemp $TMPDIR/aws-session-credentials-"$(date +%s)"-XXXXX)"
+AWS_CREDS_TEMP_FP="$(mktemp ${TMPDIR:-/tmp}/aws-session-credentials-"$(date +%s)"-XXXXX)"
 generate_aws_credentials() {
   info "Retrieving an AWS session token"
   printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s" \
