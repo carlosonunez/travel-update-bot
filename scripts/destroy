@@ -1,19 +1,53 @@
 #!/usr/bin/env bash
+source $(dirname "$0")/helpers/logging.sh
 ENVIRONMENT="${ENVIRONMENT:-test}"
 DOCKER_COMPOSE="docker-compose -f docker-compose.deploy.yml"
 FUNCTIONS_ONLY="${FUNCTIONS_ONLY:-false}"
 INFRA_ONLY="${INFRA_ONLY:-false}"
+if test -f "$(dirname "$0")/../.env"
+then
+  export $(grep -Ev '^#' "$(dirname "$0")/../.env" | xargs -0)
+fi
+export AWS_SESSION_NAME="${TF_VAR_app_name}-session-$(date +%s)"
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID?Please define AWS_ACCESS_KEY_ID}"
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY?Please define AWS_SECRET_ACCESS_KEY}"
+AWS_REGION="${AWS_REGION?Please define AWS_REGION}"
+AWS_ROLE_ARN="${AWS_ROLE_ARN?Please define AWS_ROLE_ARN}"
+AWS_STS_EXTERNAL_ID="${AWS_STS_EXTERNAL_ID?Please define AWS_STS_EXTERNAL_ID}"
+AWS_CREDS_TEMP_FP="$(mktemp /tmp/aws-session-credentials-"$(date +%s)"-XXXXX)"
+
+generate_aws_credentials() {
+  info "Retrieving an AWS session token"
+  printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s" \
+    $(docker-compose -f docker-compose.deploy.yml run -T --rm obtain-aws-session-credentials) \
+    >> "$AWS_CREDS_TEMP_FP"
+}
+
+remove_aws_credentials() {
+  rm -f "$AWS_CREDS_TEMP_FP"
+}
+
+get_aws_credentials() {
+  info "Removing AWS credentials"
+  cat "$AWS_CREDS_TEMP_FP"
+}
 
 destroy_functions() {
   grep -Eiq '^true$' <<< "$INFRA_ONLY" && return 0
 
+  info "Destroying functions for $ENVIRONMENT"
+  export $(get_aws_credentials)
   $DOCKER_COMPOSE run --rm destroy-serverless-functions-"$ENVIRONMENT"
 }
 
 destroy_infra() {
   grep -Eiq '^true$' <<< "$FUNCTIONS_ONLY" && return 0
 
+  info "Destroying infrastructure for $ENVIRONMENT"
+  export $(get_aws_credentials)
   $DOCKER_COMPOSE run --rm -e TF_VAR_aws_ecr_enable=false destroy-serverless-infra-"$ENVIRONMENT"
 }
 
-destroy_functions; destroy_infra
+generate_aws_credentials || exit 1
+destroy_functions || true
+destroy_infra
