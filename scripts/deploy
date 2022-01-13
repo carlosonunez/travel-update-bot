@@ -16,6 +16,7 @@ ENVIRONMENT="${ENVIRONMENT:-test}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 AWS_ECR_ENABLE="${AWS_ECR_ENABLE:-false}"
 AWS_ECR_REPUSH="${AWS_ECR_REPUSH:-false}"
+DOCKER_COMPOSE_DEPLOY="docker-compose -f docker-compose.deploy.yml"
 set -e
 
 usage() {
@@ -70,7 +71,7 @@ write_lambda_secrets() {
   then stage="v1"
   fi
   info "Getting integration test API Gateway endpoint."
-  endpoint_url=$(docker-compose -f docker-compose.deploy.yml run \
+  endpoint_url=$($DOCKER_COMPOSE_DEPLOY run \
       --rm serverless info --stage "$stage" | \
     grep -E 'http.*\/ping' | \
     sed 's/.*\(http.*\)\/ping/\1/' | \
@@ -78,7 +79,7 @@ write_lambda_secrets() {
     tr -d $'\n')
 
   info "Getting API Gateway default API key."
-  api_key=$(docker-compose -f docker-compose.deploy.yml \
+  api_key=$($DOCKER_COMPOSE_DEPLOY \
       run --rm serverless info --stage "$stage" | \
     grep -E 'default_key_test:' | \
     sed 's/.*default_key_test: //' | \
@@ -101,12 +102,12 @@ write_lambda_secrets() {
 
 write_infrastructure_secrets() {
   info "Getting infrastructure secrets."
-  tf_output=$(2>&1 docker-compose -f docker-compose.deploy.yml run \
+  tf_output=$(2>&1 $DOCKER_COMPOSE_DEPLOY run \
     -e ENVIRONMENT="$ENVIRONMENT" \
     --rm \
     terraform output | tr -d $'\r')
   info "Output: $tf_output"
-  for output_var in app_account_ak app_account_sk certificate_arn ecr_repository \
+  for output_var in app_account_ak app_account_sk certificate_arn \
     ecr_repository_password
   do
     secret_value=$(grep -E "^$output_var = " <<< "$tf_output" | \
