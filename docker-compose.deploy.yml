@@ -15,6 +15,7 @@ services:
     env_file: .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - $PWD/secrets:/app/secrets
     environment:
       - ENVIRONMENT=test
       - SLS_WARNING_DISABLE=*
@@ -81,6 +82,24 @@ services:
       - apply
       - --auto-approve=true
       - --input=false
+  delete-ecr-from-state-test:
+    extends: terraform
+    environment:
+      TF_VAR_environment: "test"
+      TF_VAR_aws_ecr_enable: "true"
+    command:
+      - state
+      - rm
+      - "aws_ecr_repository.app[0]"
+  delete-ecr-from-state-production:
+    extends: terraform
+    environment:
+      TF_VAR_environment: "production"
+      TF_VAR_aws_ecr_enable: "true"
+    command:
+      - state
+      - rm
+      - "aws_ecr_repository.app[0]"
   deploy-serverless-functions-test:
     extends: serverless
     environment:

@@ -22,8 +22,7 @@ provider:
   ecr:
     images:
       app:
-        platform: "${self:custom.architecture}"
-        path: .
+        uri: "${file(./secrets/ecr_repository)}:app-${self:custom.architecture}"
 
 package:
   include:

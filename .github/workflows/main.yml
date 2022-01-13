@@ -47,6 +47,7 @@ jobs:
       - name: Run integration tests
         run: ./scripts/integration
         env:
+          AWS_ECR_ENABLE: 'true'
           NO_VENDOR: 'true'
 
       - name: Destroy integration environment
@@ -72,6 +73,7 @@ jobs:
       - name: Deploy to Production
         run: ENVIRONMENT=production ./scripts/deploy
         env:
+          AWS_ECR_ENABLE: 'true'
           NO_VENDOR: 'true'
 
       - name: Run smoke test

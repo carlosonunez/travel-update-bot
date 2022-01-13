@@ -128,5 +128,5 @@ output "ecr_repository" {
 }
 
 output "ecr_repository_password" {
-  value = var.aws_ecr_enable == "true" ?  data.aws_ecr_authorization_token.default.password : "none"
+  value = data.aws_ecr_authorization_token.default.password
 }
