@@ -8,6 +8,14 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_ROLE_ARN
       - AWS_REGION
+  aws-authenticated:
+    image: amazon/aws-cli:2.2.9
+    env_file: .env
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
   serverless:
     build:
       dockerfile: serverless.Dockerfile
