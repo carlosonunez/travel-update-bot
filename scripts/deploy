@@ -135,7 +135,7 @@ push_app_to_ecr() {
   do
     image_name="$repository:app-$arch"
     if grep -Eiq '^true$' <<< "$AWS_ECR_REPUSH" ||
-      test -z "$(docker images "$repository")"
+      test -z "$(docker images "$repository" | grep -Eq '^REPOSITORY')"
     then
       docker build --platform="linux/$arch" --no-cache --pull \
         -t "$image_name" . && docker push "$image_name"
