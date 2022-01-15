@@ -16,6 +16,7 @@ ENVIRONMENT="${ENVIRONMENT:-test}"
 DEPLOY_FUNCTIONS_ONLY="${DEPLOY_FUNCTIONS_ONLY:-false}"
 AWS_ECR_ENABLE="${AWS_ECR_ENABLE:-false}"
 AWS_ECR_REPUSH="${AWS_ECR_REPUSH:-false}"
+AWS_ECR_DONT_BUILD_FROM_CACHE="${AWS_ECR_DONT_BUILD_FROM_CACHE:-false}"
 DOCKER_COMPOSE_DEPLOY="docker-compose -f docker-compose.deploy.yml"
 set -e
 
@@ -40,6 +41,12 @@ ENVIRONMENT VARIABLES
 
   AWS_ECR_REPUSH                Re-push Docker images into AWS ECR.
                                 No effect if AWS_ECR_ENABLE=false.
+
+  AWS_ECR_DONT_BUILD_FROM_CACHE Always force images bound for AWS ECR to be
+                                built from scratch.
+
+                                THIS ADDS SIGNIFICANTLY GREATER TIMES TO YOUR
+                                BUILD; USE WITH CAUTION.
 
 NOTES
 
@@ -130,7 +137,6 @@ push_app_to_ecr() {
   docker login "$repository" --username AWS --password \
     "$(read_secret "ecr_repository_password")" || return 1
 
-  set -x
   for arch in amd64 arm64
   do
     image_name="$repository:app-$arch"
@@ -139,11 +145,20 @@ push_app_to_ecr() {
     then
       test "$arch" == "arm64" &&
         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      docker build --platform="linux/$arch" --no-cache --pull \
-        -t "$image_name" . && docker push "$image_name"
+      if grep -Eiq '^true$' <<< "$AWS_ECR_DONT_BUILD_FROM_CACHE"
+      then
+        docker build --platform="linux/$arch" --no-cache --pull \
+          -t "$image_name" .
+      else
+        # Image might not exist in ECR when we try to pull it.
+        # Without doing this, it will take ~20 mins for integration to run.
+        # My wallet would like to prevent this.
+        docker pull "$image_name" || true
+        docker build --platform="linux/$arch" -t "$image_name" .
+      fi
+      docker push "$image_name"
     fi
   done
-  set +x
 }
 
 get_existing_ecr_repository() {
