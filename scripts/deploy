@@ -191,12 +191,12 @@ deploy_serverless_infrastructure() {
   $DOCKER_COMPOSE_DEPLOY run --rm \
     -e TF_VAR_aws_ecr_enable="$aws_ecr_enabled" \
     deploy-serverless-infra-"$ENVIRONMENT" &&
+  write_infrastructure_secrets &&
   if test "$ENVIRONMENT" == "production"
   then
     $DOCKER_COMPOSE_DEPLOY build deploy-serverless-domain-production &&
     $DOCKER_COMPOSE_DEPLOY run --rm deploy-serverless-domain-production
   fi &&
-  write_infrastructure_secrets &&
   delete_ecr_from_state_to_prevent_long_image_build_times
 }
 
