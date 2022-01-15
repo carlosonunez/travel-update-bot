@@ -150,4 +150,4 @@ else
   return_code="$?"
   teardown
 fi
-return "$?"
+exit "$?"
