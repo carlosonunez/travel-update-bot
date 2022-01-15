@@ -130,6 +130,7 @@ push_app_to_ecr() {
   docker login "$repository" --username AWS --password \
     "$(read_secret "ecr_repository_password")" || return 1
 
+  set -x
   for arch in amd64 arm64
   do
     image_name="$repository:app-$arch"
@@ -140,6 +141,7 @@ push_app_to_ecr() {
         -t "$image_name" . && docker push "$image_name"
     fi
   done
+  set +x
 }
 
 get_existing_ecr_repository() {
@@ -194,7 +196,6 @@ deploy_serverless_functions() {
 
   info "Deploying serverless functions."
   export $(get_aws_credentials)
-  pull_down_existing_images_to_speed_up_builds
   $DOCKER_COMPOSE_DEPLOY build deploy-serverless-functions-"$ENVIRONMENT" &&
   $DOCKER_COMPOSE_DEPLOY run --rm deploy-serverless-functions-"$ENVIRONMENT" &&
     write_lambda_secrets
