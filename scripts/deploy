@@ -137,6 +137,8 @@ push_app_to_ecr() {
     if grep -Eiq '^true$' <<< "$AWS_ECR_REPUSH" ||
       test -z "$(docker images "$repository" | grep -Eq '^REPOSITORY')"
     then
+      test "$arch" == "arm64" &&
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       docker build --platform="linux/$arch" --no-cache --pull \
         -t "$image_name" . && docker push "$image_name"
     fi
