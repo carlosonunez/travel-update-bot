@@ -131,20 +131,27 @@ write_infrastructure_secrets() {
 }
 
 push_app_to_ecr() {
+  _enable_arm64_builds_if_in_ci() {
+    test "$arch" == "arm64" &&
+      docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  }
+
   grep -Eiq '^true$' <<< "$AWS_ECR_ENABLE"  || return 0
 
+  info "Pushing app into ECR"
   repository="$(read_secret "ecr_repository")"
   docker login "$repository" --username AWS --password \
     "$(read_secret "ecr_repository_password")" || return 1
+  
+  _enable_arm64_builds_if_in_ci
 
   for arch in amd64 arm64
   do
+    export DOCKER_DEFAULT_PLATFORM="linux/$arch"
     image_name="$repository:app-$arch"
     if grep -Eiq '^true$' <<< "$AWS_ECR_REPUSH" ||
       test -z "$(docker images "$repository" | grep -Eq '^REPOSITORY')"
     then
-      test "$arch" == "arm64" &&
-        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       if grep -Eiq '^true$' <<< "$AWS_ECR_DONT_BUILD_FROM_CACHE"
       then
         docker build --platform="linux/$arch" --no-cache --pull \
@@ -162,10 +169,10 @@ push_app_to_ecr() {
 }
 
 get_existing_ecr_repository() {
-  grep -Eiq '^true$' <<< "$AWS_ECR_ENABLE"  || return 0
+  grep -Eiq '^true$' <<< "$AWS_ECR_ENABLE"  || return 1
   
   2>/dev/null $DOCKER_COMPOSE_DEPLOY run -T --rm \
-    aws-authenticated ecr describe-repositories --repository-names "${TF_VAR_app_name}" \
+    aws-authenticated ecr describe-repositories --repository-names "${AWS_ECR_REPO_NAME}" \
       --query 'repositories[*].repositoryUri' --output text
 }
 
@@ -175,10 +182,11 @@ deploy_serverless_infrastructure() {
 
     if test -z "$(get_existing_ecr_repository)"
     then
-      $DOCKER_COMPOSE_DEPLOY run --rm aws ecr create-repository \
-        --repository-name "$AWS_ECR_REPO_NAME" &&
-      write_secret "ecr_repository" "$(get_existing_ecr_repository)"
+      info "Creating ECR repository: $AWS_ECR_REPO_NAME"
+      $DOCKER_COMPOSE_DEPLOY run --rm aws-authenticated ecr create-repository \
+        --repository-name "$AWS_ECR_REPO_NAME"
     fi
+    write_secret "$(get_existing_ecr_repository)" "ecr_repository"
   }
 
   export $(get_aws_credentials)
@@ -189,13 +197,12 @@ deploy_serverless_infrastructure() {
     exit 1
   fi
   write_infrastructure_secrets &&
+  create_ecr_if_desired &&
   if test "$ENVIRONMENT" == "production"
   then
     $DOCKER_COMPOSE_DEPLOY build deploy-serverless-domain-production &&
     $DOCKER_COMPOSE_DEPLOY run --rm deploy-serverless-domain-production
-  fi &&
-
-  create_ecr_if_desired
+  fi
 }
 
 deploy_serverless_functions() {
