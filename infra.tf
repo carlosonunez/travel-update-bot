@@ -106,7 +106,7 @@ resource "aws_acm_certificate_validation" "app_cert" {
 
 resource "aws_ecr_repository" "app" {
   count = var.aws_ecr_enable == "true" ? 1 : 0
-  name = var.app_name
+  name = "${var.app_name}-${var.environment}"
 }
 
 data "aws_ecr_authorization_token" "default" {}
