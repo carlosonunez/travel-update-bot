@@ -185,7 +185,7 @@ deploy_serverless_infrastructure() {
   info "Deploying serverless infrastructure."
   if ! $DOCKER_COMPOSE_DEPLOY run --rm deploy-serverless-infra-"$ENVIRONMENT"
   then
-    fail "Failed to deploy infrastructure"
+    error "Failed to deploy infrastructure"
     exit 1
   fi
   write_infrastructure_secrets &&

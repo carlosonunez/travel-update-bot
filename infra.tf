@@ -37,10 +37,6 @@ variable "app_name" {
   description = "The name of the app for which APIs are being built."
 }
 
-variable "aws_ecr_enable" {
-  description = "Enables a custom ECR repository for storing this app's Docker image."
-}
-
 data "aws_route53_zone" "app_dns_zone" {
   name = "${var.domain_tld}."
 }
@@ -116,10 +112,6 @@ output "app_account_sk" {
 
 output "certificate_arn" {
   value = var.no_certs == "true" ? "none" : aws_acm_certificate.app_cert.0.arn
-}
-
-output "ecr_repository" {
-  value = var.aws_ecr_enable == "true" ? aws_ecr_repository.app.0.repository_url : "none"
 }
 
 output "ecr_repository_password" {
