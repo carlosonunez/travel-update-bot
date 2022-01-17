@@ -23,7 +23,7 @@ provider:
     images:
       app:
         path: .
-        platform: "${self:custom.architecture}"
+        platform: "linux/${self:custom.architecture}"
 
 package:
   include:
@@ -85,7 +85,7 @@ functions:
           private: true
 
 custom:
-  architecture: linux/arm64
+  architecture: arm64
   enableCustomDomain:
     develop: false
     v1: true
