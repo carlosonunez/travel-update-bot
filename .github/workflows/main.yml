@@ -55,6 +55,7 @@ jobs:
         run: ./scripts/integration
         env:
           NO_VENDOR: 'true'
+          DOCKER_DEFAULT_PLATFORM: 'linux/arm64'
 
       - name: Destroy integration environment
         run: ./scripts/destroy
@@ -87,6 +88,7 @@ jobs:
         run: ENVIRONMENT=production ./scripts/deploy
         env:
           NO_VENDOR: 'true'
+          DOCKER_DEFAULT_PLATFORM: 'linux/arm64'
 
       - name: Run smoke test
         run: ./scripts/ping_production
