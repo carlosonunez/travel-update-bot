@@ -85,7 +85,7 @@ functions:
           private: true
 
 custom:
-  architecture: arm64
+  architecture: linux/arm64
   enableCustomDomain:
     develop: false
     v1: true
