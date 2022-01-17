@@ -131,23 +131,17 @@ write_infrastructure_secrets() {
 }
 
 push_app_to_ecr() {
-  _enable_arm64_builds_if_in_ci() {
-    test "$arch" == "arm64" &&
-      docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  }
-
   grep -Eiq '^true$' <<< "$AWS_ECR_ENABLE"  || return 0
 
   info "Pushing app into ECR"
   repository="$(read_secret "ecr_repository")"
   docker login "$repository" --username AWS --password \
     "$(read_secret "ecr_repository_password")" || return 1
-  
-  _enable_arm64_builds_if_in_ci
 
   for arch in amd64 arm64
   do
     export DOCKER_DEFAULT_PLATFORM="linux/$arch"
+    info "Pushing app into ECR, platform: $arch"
     image_name="$repository:app-$arch"
     if grep -Eiq '^true$' <<< "$AWS_ECR_REPUSH" ||
       test -z "$(docker images "$repository" | grep -Eq '^REPOSITORY')"
