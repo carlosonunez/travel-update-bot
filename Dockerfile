@@ -5,7 +5,6 @@ ENV AWS_LAMBDA_RIE_URL_AMD64=https://github.com/aws/aws-lambda-runtime-interface
 
 RUN apt -y update
 RUN apt -y install zlib1g-dev liblzma-dev patch chromium chromium-driver
-RUN apt -y install qemu binfmt-support qemu-user-static
 
 RUN mkdir /app
 COPY Gemfile /app
