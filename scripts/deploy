@@ -73,11 +73,9 @@ USAGE
 
 
 write_lambda_secrets() {
+  grep -iq "production" <<< "$ENVIRONMENT" && return 0
+
   stage="develop"
-  if test "$ENVIRONMENT" == "production" ||
-    test "$ENVIRONMENT" == "prod"
-  then stage="v1"
-  fi
   info "Getting integration test API Gateway endpoint."
   endpoint_url=$($DOCKER_COMPOSE_DEPLOY run \
       --rm serverless info --stage "$stage" | \
