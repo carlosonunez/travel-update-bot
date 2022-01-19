@@ -33,13 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v1
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: arm64
-
       - name: Install Docker Compose
         run: curl -L ${DOCKER_COMPOSE_URL}/docker-compose-`uname -s`-`uname -m` > ./docker-compose &&
              chmod +x ./docker-compose
@@ -50,6 +43,13 @@ jobs:
         run: ./docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
           ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: arm64
 
       - name: Run integration tests
         run: ./scripts/integration

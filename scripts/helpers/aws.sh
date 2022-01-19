@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 AWS_CREDS_TEMP_FP="$(mktemp ${TMPDIR:-/tmp}/aws-session-credentials-"$(date +%s)"-XXXXX)"
+export AWS_SESSION_NAME="$(basename "$0" | base64 | head -c 8)-aws-session-$(date +%s)"
 generate_aws_credentials() {
   info "Pulling AWS image to avoid next command mangling image pull info"
   docker-compose -f docker-compose.deploy.yml pull obtain-aws-session-credentials

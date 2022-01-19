@@ -23,3 +23,6 @@ jobs:
 
       - name: Run integration tests
         run: ./scripts/integration
+        env:
+          NO_VENDOR: "true"
+

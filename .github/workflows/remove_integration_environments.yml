@@ -21,8 +21,5 @@ jobs:
         env:
           ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
 
-      - name: Remove functions
-        run: docker-compose -f docker-compose.deploy.yml run --rm serverless remove --stage develop
-
-      - name: Remove infrastructure
-        run: docker-compose-f docker-compose.deploy.yml run --rm terraform destroy
+      - name: Delete integration environment
+        run: ./scripts/destroy
