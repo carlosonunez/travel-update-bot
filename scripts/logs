@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+DOCKER_COMPOSE_DEPLOY="docker-compose -f docker-compose.deploy.yml"
+source $(dirname "$0")/helpers/shared_secrets.sh
+source $(dirname "$0")/helpers/logging.sh
+source $(dirname "$0")/helpers/aws.sh
+if test -f "$(dirname "$0")/../.env"
+then
+  export $(grep -Ev '^#' "$(dirname "$0")/../.env" | xargs -0)
+fi
+generate_aws_credentials || exit 1
+export $(get_aws_credentials)
+$DOCKER_COMPOSE_DEPLOY run --rm serverless logs "$@"
+remove_aws_credentials
