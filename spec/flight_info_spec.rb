@@ -20,6 +20,22 @@ describe 'Test load' do
 end
 
 describe 'Flight info' do
+  context 'When it receives a warm-up event' do
+    it 'Should no-op', :unit do
+      fake_event = JSON.parse({
+        source: 'serverless-plugin-warmup'
+      }.to_json)
+      expected_json = {
+        statusCode: 200,
+        body: {
+          message: "We're warm"
+        }.to_json
+      }
+      actual_json = get_flight_info(event: fake_event)
+      expect(actual_json).to eq expected_json
+    end
+  end
+
   context 'When I ping it' do
     it 'Should ping back', :unit do
       expected_response = {

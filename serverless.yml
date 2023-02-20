@@ -1,6 +1,7 @@
 ---
 plugins:
   - serverless-domain-manager
+  - serverless-plugin-warmup
 
 service:
   name: flightaware-flight-info
@@ -57,6 +58,9 @@ functions:
       - http:
           path: ping
           method: get
+    warmup:
+      default:
+        enable: false
   chromium_ping:
     memorySize: 512
     timeout: 30
@@ -68,6 +72,9 @@ functions:
           path: debugChromium
           method: get
           private: true
+    warmup:
+      default:
+        enable: true
   test_internet_access:
     memorySize: 512
     timeout: 30
@@ -79,9 +86,13 @@ functions:
           path: testInternetAccess
           method: get
           private: true
+    warmup:
+      default:
+        enable: true
   flight_info:
     timeout: 30
-    memorySize: 2048
+    # Make more room for static assets that FlightAware loads
+    memorySize: 1024
     image:
       name: app
       command: bin/flight-info.get_flight_info
@@ -90,12 +101,20 @@ functions:
           path: flightInfo
           method: get
           private: true
+    warmup:
+      default:
+        enable: true
 
 custom:
   architecture: arm64
   enableCustomDomain:
     develop: false
     v1: true
+  warmup:
+    default:
+      enabled: true
+      memorySize: 512
+      verbose: true
   customDomain:
     stage: v1
     domainName: ${env:DOMAIN_PATH}.${env:DOMAIN_TLD}
