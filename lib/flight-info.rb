@@ -175,9 +175,11 @@ arrival time."
 
   def self.init_capybara
     Capybara.register_driver :headless_chrome do |app|
+      args = CHROMIUM_ARGS
+      args.push("--proxy-server=#{ENV['TAILSCALE_PROXY']}") if ENV.key? 'TAILSCALE_PROXY'
       caps = ::Selenium::WebDriver::Remote::Capabilities.chrome(
         "goog:chromeOptions": {
-          args: CHROMIUM_ARGS
+          args: args
         }
       )
 

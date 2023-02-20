@@ -19,6 +19,13 @@ provider:
     - default_key_${env:ENVIRONMENT}
   tracing:
     apiGateway: true
+  environment:
+    PROXY_HOST: ${env:PROXY_HOST}
+    PROXY_PORT: ${env:PROXY_PORT}
+    TAILSCALE_AUTH_KEY: ${env:TAILSCALE_AUTH_KEY}
+    TAILSCALE_EXIT_NODE_IP: ${env:TAILSCALE_EXIT_NODE_IP}
+    TS_TEST_URL: ${env:TS_TEST_URL}
+    TS_TEST_WANT: ${env:TS_TEST_WANT}
   ecr:
     images:
       app:
