@@ -3,3 +3,5 @@
 .serverless
 secrets
 vendor
+cscope.*
+tags
