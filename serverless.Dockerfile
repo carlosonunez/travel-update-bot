@@ -1,8 +1,8 @@
 FROM carlosnunez/serverless:v2.69.1
 MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 
-RUN npm install serverless-domain-manager --save-dev
-RUN npm install --save-dev serverless-plugin-warmup
+RUN npm install serverless-domain-manager@7.0.4 --save-dev
+RUN npm install --save-dev serverless-plugin-warmup@6.2.0
 
 # python3 has a bad symlink in this image, but it is installed.
 RUN ln -s /usr/bin/python3 /usr/local/bin/python3
