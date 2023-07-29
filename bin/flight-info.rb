@@ -23,19 +23,8 @@ def get_ping(event: {}, context: {})
 end
 
 def get_flight_info(event: {}, context: {})
-  if event['source'] == 'serverless-plugin-warmup'
-    # Warm up Chromium as well so that caches and stuff stay resident
-    args = FlightInfo::CHROMIUM_ARGS.map { |arg| arg.prepend('--') }
-                                    .map { |arg| arg.gsub('----', '--') }
-                                    .join(' ')
-    output = `2>&1 chromium #{args} about://blank`
-    return {
-      statusCode: 200,
-      body: { message: "We're warm" }.to_json
-    }
-  end
-  if event.empty? or
-     event['queryStringParameters'].nil? or
+  if event.empty? ||
+     event['queryStringParameters'].nil? ||
      event['queryStringParameters']['flightNumber'].nil?
     return {
       statusCode: 422,

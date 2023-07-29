@@ -44,6 +44,7 @@ services:
     entrypoint: rspec
     environment:
       LOAD_PATH: "./spec/unit;./spec;./lib"
+      RUNNING_UNIT_TESTS: true
     volumes:
       - /dev/null:/dev/shm
     command:

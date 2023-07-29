@@ -1,18 +1,23 @@
 require 'spec_helper'
 require 'ostruct'
 
+def get_test_flight(flight_number)
+  HTTParty.get("#{Dir.pwd}/spec/fixtures/test_flight_#{flight_number}.html")
+rescue StandardError => e
+  raise "Failed to get test file for #{flight_number}: #{e}"
+end
+
 describe 'Test load' do
   it 'Should give me my nil page', :unit do
     # This is easier than trying to test double Capybara since there's so
     # much monkey patching going on in there.
     fake_reply = 'bloop'
-    fake_session = double('Fake session',
-                          visit: true,
-                          body: fake_reply)
-    allow(FlightInfo).to receive(:init_capybara).and_return(fake_session)
+    fake_response = double(code: 200,
+                           body: fake_reply)
+    allow(HTTParty).to receive(:get).and_return(fake_response)
     expect(FlightInfo.test_internet_access).to eq({
                                                     body: {
-                                                      message: fake_reply
+                                                      message: 'pass'
                                                     }.to_json,
                                                     statusCode: 200
                                                   })
@@ -20,22 +25,6 @@ describe 'Test load' do
 end
 
 describe 'Flight info' do
-  context 'When it receives a warm-up event' do
-    it 'Should no-op', :unit do
-      fake_event = JSON.parse({
-        source: 'serverless-plugin-warmup'
-      }.to_json)
-      expected_json = {
-        statusCode: 200,
-        body: {
-          message: "We're warm"
-        }.to_json
-      }
-      actual_json = get_flight_info(event: fake_event)
-      expect(actual_json).to eq expected_json
-    end
-  end
-
   context 'When I ping it' do
     it 'Should ping back', :unit do
       expected_response = {
@@ -57,7 +46,7 @@ describe 'Flight info' do
 
   context 'When given a flight number' do
     it 'Retrieves flight info when all times are on the page', :unit do
-      ENV['FLIGHTAWARE_URL'] = "file:///#{Dir.pwd}/spec/fixtures/test_flight_aa1.html"
+      allow(HTTParty).to_receive(:get).and_return(get_test_flight('AAL1'))
       fake_event = JSON.parse({
         queryStringParameters: {
           flightNumber: 'AAL1'

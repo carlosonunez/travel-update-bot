@@ -36,6 +36,17 @@ verify_tailscale_connected() {
   return "$res"
 }
 
+running_unit_tests() {
+  test -z "$RUNNING_UNIT_TESTS"
+}
+
+if running_unit_tests
+then
+  aws_lambda_ric "$@"
+  exit $?
+fi
+
+
 verify_proxy_host_port_defined || exit 1
 connect_to_tailscale || exit 1
 verify_tailscale_connected || exit 1
