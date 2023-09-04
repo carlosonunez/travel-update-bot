@@ -1,10 +1,19 @@
 require 'spec_helper'
 require 'ostruct'
 
-def get_test_flight(flight_number)
-  HTTParty.get("#{Dir.pwd}/spec/fixtures/test_flight_#{flight_number}.html")
+def fake_response(fixture_name)
+  body = File.read("#{Dir.pwd}/spec/fixtures/#{fixture_name}.html")
+  double(code: 200, body: body)
 rescue StandardError => e
-  raise "Failed to get test file for #{flight_number}: #{e}"
+  raise "Failed to get test file for fixture #{fixture_name}: #{e}"
+end
+
+def get_test_flight(flight_number)
+  fake_response("test_flight_#{flight_number.downcase}")
+end
+
+def get_test_airport_north_america(iata)
+  fake_response("test_airport_k#{iata.downcase}")
 end
 
 describe 'Test load' do
@@ -14,7 +23,7 @@ describe 'Test load' do
     fake_reply = 'bloop'
     fake_response = double(code: 200,
                            body: fake_reply)
-    allow(HTTParty).to receive(:get).and_return(fake_response)
+    allow(SimpleTextBrowser).to receive(:get).and_return(fake_response)
     expect(FlightInfo.test_internet_access).to eq({
                                                     body: {
                                                       message: 'pass'
@@ -46,7 +55,19 @@ describe 'Flight info' do
 
   context 'When given a flight number' do
     it 'Retrieves flight info when all times are on the page', :unit do
-      allow(HTTParty).to_receive(:get).and_return(get_test_flight('AAL1'))
+      allow(SimpleTextBrowser).to receive(:get)
+        .with("https://flightera.net/en/flight/AA1")
+        .and_return(get_test_flight('AA1'))
+      allow(SimpleTextBrowser).to receive(:post_form)
+        .with("https://www.avcodes.co.uk/aptcoderes.asp",
+              timeout: 5,
+              body: "icaoapt=KJFK")
+        .and_return(get_test_airport_north_america("JFK"))
+      allow(SimpleTextBrowser).to receive(:post_form)
+        .with("https://www.avcodes.co.uk/aptcoderes.asp",
+              timeout: 5,
+              body: "icaoapt=KLAX")
+        .and_return(get_test_airport_north_america("LAX"))
       fake_event = JSON.parse({
         queryStringParameters: {
           flightNumber: 'AAL1'

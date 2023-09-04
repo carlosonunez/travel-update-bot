@@ -6,12 +6,10 @@ $LOAD_PATH.unshift('./vendor/bundle/gems/**/lib') if Dir.exist? './vendor'
 require 'flight-info'
 
 def test_chromium_launch(event: {}, context: {})
-  args = FlightInfo::CHROMIUM_ARGS.map { |arg| arg.prepend('--') }
-                                  .map { |arg| arg.gsub('----', '--') }
-                                  .join(' ')
-  output = `2>&1 chromium #{args} https://flightaware.com`
-  rc = $CHILD_STATUS
-  { statusCode: 200, body: { message: "rc: #{rc}, opts: #{args}, output: #{output}" }.to_json }
+  message = <<-DEPRECATED_MESSAGE
+  These functions no longer use Chromium for rendering and have been deprecated.
+  DEPRECATED_MESSAGE
+  { statusCode: 200, body: { message: message }.to_json }
 end
 
 def test_internet_access(event: {}, context: {})
@@ -31,5 +29,5 @@ def get_flight_info(event: {}, context: {})
       body: { error: 'Missing flight number' }.to_json
     }
   end
-  FlightInfo.get_flight_details(flight_number: event['queryStringParameters']['flightNumber'])
+  FlightInfo.flight_details(flight_number_raw: event['queryStringParameters']['flightNumber'])
 end
